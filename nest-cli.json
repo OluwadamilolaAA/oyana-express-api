@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "apps/oyana-express-api/src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "webpack": true,
+    "tsConfigPath": "apps/oyana-express-api/tsconfig.app.json"
+  },
+  "monorepo": true,
+  "root": "apps/oyana-express-api",
+  "projects": {
+    "oyana-auth": {
+      "type": "application",
+      "root": "apps/oyana-auth",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-auth/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-auth/tsconfig.app.json"
+      }
+    },
+    "oyana-express-api": {
+      "type": "application",
+      "root": "apps/oyana-express-api",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-express-api/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-express-api/tsconfig.app.json"
+      }
+    },
+    "oyana-user": {
+      "type": "application",
+      "root": "apps/oyana-user",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-user/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-user/tsconfig.app.json"
+      }
+    },
+    "packages": {
+      "type": "library",
+      "root": "libs/packages",
+      "entryFile": "index",
+      "sourceRoot": "libs/packages/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/packages/tsconfig.lib.json",
+        "assets": ["**/*.proto"],
+        "watchAssets": true
+      }
+    }
+  }
+}

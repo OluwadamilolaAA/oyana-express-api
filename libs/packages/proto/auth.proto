@@ -1,0 +1,18 @@
+
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  rpc FindOne (UserById) returns (User) {}
+}
+
+message UserById {
+  int32 id = 1;
+}
+
+message User {
+  int32 id = 1;
+  string email = 2;
+  string name = 3;
+}
