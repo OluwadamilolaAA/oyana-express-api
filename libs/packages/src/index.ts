@@ -24,4 +24,5 @@ export type {
   ValidateUserRequest,
   ValidateUserResponse,
   User,
+  UserServiceClient
 } from './generated/user';

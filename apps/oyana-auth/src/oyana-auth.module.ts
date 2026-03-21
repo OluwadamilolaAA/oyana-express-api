@@ -3,6 +3,7 @@ import { OyanaAuthController } from './oyana-auth.controller';
 import { OyanaAuthService } from './oyana-auth.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { join } from 'path';
+import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
@@ -17,6 +18,10 @@ import { join } from 'path';
         },
       },
     ]),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || 'supersecret',
+      signOptions: { expiresIn: '1d' },
+    }),
   ],
   controllers: [OyanaAuthController],
   providers: [OyanaAuthService],

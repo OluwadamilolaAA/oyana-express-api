@@ -1,4 +1,11 @@
-import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  OnModuleInit,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
   LoginRequest,
@@ -9,46 +16,79 @@ import {
   ValidateTokenResponse,
   User,
 } from '@package/packages';
-import { UserServiceClient } from '@package/packages/generated/user';
+import { UserServiceClient } from '@package/packages';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class OyanaAuthService implements OnModuleInit {
   private userService: UserServiceClient;
 
-  constructor(@Inject('USER_SERVICE') private readonly client: ClientGrpc) {}
+  constructor(
+    @Inject('USER_SERVICE') private readonly client: ClientGrpc,
+    private readonly jwtService: JwtService,
+  ) {}
 
   onModuleInit() {
     this.userService = this.client.getService<UserServiceClient>('UserService');
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    
-    return { token: 'dummy-token' };
+    const response = await firstValueFrom(
+      this.userService.validateUser({
+        email: request.email,
+        password: request.password,
+      }),
+    );
+
+    if (!response?.user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const token = this.generateToken(response.user);
+
+    return { token };
   }
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    const user = firstValueFrom(this.userService.createUser(request));
+    const response = await firstValueFrom(this.userService.createUser(request));
 
-    if (!user) {
-      throw new Error('User registration failed');
+    if (!response?.user) {
+      throw new UnauthorizedException('User registration failed');
     }
-    return { message: 'User registered successfully', status: 'success' };
+
+    return {
+      message: 'User registered successfully',
+      status: 'success',
+    };
   }
 
   async validateToken(
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
-    // Implement token validation logic here
-    return {
-      isValid: true,
-      userId: 'dummy-user-id',
-      email: 'dummy@example.com',
-    };
+    try {
+      const payload = this.jwtService.verify(request.token);
+
+      return {
+        isValid: true,
+        userId: payload.sub,
+        email: payload.email,
+      };
+    } catch (error) {
+      return {
+        isValid: false,
+        userId: '',
+        email: '',
+      };
+    }
   }
 
   private generateToken(user: User): string {
-    // Implement token generation logic here
-    return 'dummy-token';
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    return this.jwtService.sign(payload);
   }
 }
