@@ -1,21 +1,39 @@
-import { Injectable } from '@nestjs/common';
-import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ValidateTokenRequest, ValidateTokenResponse } from '@package/packages';
-import { User } from '@package/packages/generated/user';
-
+import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
+import type { ClientGrpc } from '@nestjs/microservices';
+import {
+  LoginRequest,
+  LoginResponse,
+  RegisterRequest,
+  RegisterResponse,
+  ValidateTokenRequest,
+  ValidateTokenResponse,
+  User,
+} from '@package/packages';
+import { UserServiceClient } from '@package/packages/generated/user';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
-export class OyanaAuthService {
+export class OyanaAuthService implements OnModuleInit {
+  private userService: UserServiceClient;
+
+  constructor(@Inject('USER_SERVICE') private readonly client: ClientGrpc) {}
+
+  onModuleInit() {
+    this.userService = this.client.getService<UserServiceClient>('UserService');
+  }
+
   async login(request: LoginRequest): Promise<LoginResponse> {
     
     return { token: 'dummy-token' };
   }
 
   async register(request: RegisterRequest): Promise<RegisterResponse> {
-    // Implement registration logic here
-    return {
-      message: 'User registered successfully',
-      status: 'success',
-    };
+    const user = firstValueFrom(this.userService.createUser(request));
+
+    if (!user) {
+      throw new Error('User registration failed');
+    }
+    return { message: 'User registered successfully', status: 'success' };
   }
 
   async validateToken(
@@ -29,7 +47,7 @@ export class OyanaAuthService {
     };
   }
 
-  private generateToken(user:User): string {
+  private generateToken(user: User): string {
     // Implement token generation logic here
     return 'dummy-token';
   }
