@@ -14,9 +14,5 @@ describe('OyanaUserController', () => {
     oyanaUserController = app.get<OyanaUserController>(OyanaUserController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(oyanaUserController.getHello()).toBe('Hello World!');
-    });
-  });
+
 });

@@ -2,8 +2,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const { execSync } = require('child_process');
 
-const protoDir = path.join(__dirname, '../libs/packages/proto');
-const outDir = path.join(__dirname, '../libs/packages/generated');
+const protoDir = path.join(__dirname, '../libs/packages/src/proto');
+const outDir = path.join(__dirname, '../libs/packages/src/generated');
 
 // Find all .proto files recursively in protoDir
 function getProtoFiles(dir) {

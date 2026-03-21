@@ -19,6 +19,15 @@
         "tsConfigPath": "apps/oyana-auth/tsconfig.app.json"
       }
     },
+    "oyana-driver": {
+      "type": "application",
+      "root": "apps/oyana-driver",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-driver/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-driver/tsconfig.app.json"
+      }
+    },
     "oyana-express-api": {
       "type": "application",
       "root": "apps/oyana-express-api",
@@ -44,7 +53,9 @@
       "sourceRoot": "libs/packages/src",
       "compilerOptions": {
         "tsConfigPath": "libs/packages/tsconfig.lib.json",
-        "assets": ["**/*.proto"],
+        "assets": [
+          "**/*.proto"
+        ],
         "watchAssets": true
       }
     }

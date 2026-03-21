@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package driver;
+
+service DriverService {
+  rpc CreateDriver (CreateDriverRequest) returns (CreateDriverResponse);
+  rpc GetDriver (GetDriverRequest) returns (GetDriverResponse);
+  rpc UpdateDriver (UpdateDriverRequest) returns (UpdateDriverResponse);
+  rpc ListDrivers (ListDriversRequest) returns (ListDriversResponse);
+}
+
+// Requests & Responses
+
+message CreateDriverRequest {
+  string userId = 1;        // Reference to User service
+  string vehicleType = 2;
+  string licenseNumber = 3;
+}
+
+message CreateDriverResponse {
+  Driver driver = 1;
+}
+
+message GetDriverRequest {
+  string userId = 1;        // Fetch driver by user ID
+}
+
+message GetDriverResponse {
+  Driver driver = 1;
+}
+
+message UpdateDriverRequest {
+  string userId = 1;
+  string vehicleType = 2;
+  string licenseNumber = 3;
+  bool isAvailable = 4;
+}
+
+message UpdateDriverResponse {
+  Driver driver = 1;
+}
+
+message ListDriversRequest {
+  bool onlyAvailable = 1;   // Optional filter
+}
+
+message ListDriversResponse {
+  repeated Driver drivers = 1;
+}
+
+// Driver message (role-specific profile)
+message Driver {
+  string userId = 1;        // Reference to User
+  string vehicleType = 2;
+  string licenseNumber = 3;
+  bool isAvailable = 4;
+}

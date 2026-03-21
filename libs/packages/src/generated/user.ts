@@ -16,10 +16,16 @@ export interface GetUserRequest {
   userId: string;
 }
 
-export interface GetUserResponse {
-  userId: string;
+export interface User {
+  id: string;
   email: string;
   name: string;
+  phone: string;
+  role: string;
+}
+
+export interface GetUserResponse {
+  user?: User | undefined;
 }
 
 export interface CreateUserRequest {
@@ -29,9 +35,16 @@ export interface CreateUserRequest {
 }
 
 export interface CreateUserResponse {
-  userId: string;
+  user?: User | undefined;
+}
+
+export interface ValidateUserRequest {
   email: string;
-  name: string;
+  password: string;
+}
+
+export interface ValidateUserResponse {
+  user?: User | undefined;
 }
 
 export const USER_PACKAGE_NAME = "user";
@@ -73,14 +86,14 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   },
 };
 
-function createBaseGetUserResponse(): GetUserResponse {
-  return { userId: "", email: "", name: "" };
+function createBaseUser(): User {
+  return { id: "", email: "", name: "", phone: "", role: "" };
 }
 
-export const GetUserResponse: MessageFns<GetUserResponse> = {
-  encode(message: GetUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+export const User: MessageFns<User> = {
+  encode(message: User, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     if (message.email !== "") {
       writer.uint32(18).string(message.email);
@@ -88,13 +101,19 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
     if (message.name !== "") {
       writer.uint32(26).string(message.name);
     }
+    if (message.phone !== "") {
+      writer.uint32(34).string(message.phone);
+    }
+    if (message.role !== "") {
+      writer.uint32(42).string(message.role);
+    }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetUserResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): User {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetUserResponse();
+    const message = createBaseUser();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -103,7 +122,7 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
             break;
           }
 
-          message.userId = reader.string();
+          message.id = reader.string();
           continue;
         }
         case 2: {
@@ -120,6 +139,59 @@ export const GetUserResponse: MessageFns<GetUserResponse> = {
           }
 
           message.name = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.phone = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.role = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseGetUserResponse(): GetUserResponse {
+  return {};
+}
+
+export const GetUserResponse: MessageFns<GetUserResponse> = {
+  encode(message: GetUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.user !== undefined) {
+      User.encode(message.user, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUserResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUserResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.user = User.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -192,19 +264,13 @@ export const CreateUserRequest: MessageFns<CreateUserRequest> = {
 };
 
 function createBaseCreateUserResponse(): CreateUserResponse {
-  return { userId: "", email: "", name: "" };
+  return {};
 }
 
 export const CreateUserResponse: MessageFns<CreateUserResponse> = {
   encode(message: CreateUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
-    }
-    if (message.email !== "") {
-      writer.uint32(18).string(message.email);
-    }
-    if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+    if (message.user !== undefined) {
+      User.encode(message.user, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -221,23 +287,7 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
             break;
           }
 
-          message.userId = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.email = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.name = reader.string();
+          message.user = User.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -250,13 +300,100 @@ export const CreateUserResponse: MessageFns<CreateUserResponse> = {
   },
 };
 
-export interface UserClient {
+function createBaseValidateUserRequest(): ValidateUserRequest {
+  return { email: "", password: "" };
+}
+
+export const ValidateUserRequest: MessageFns<ValidateUserRequest> = {
+  encode(message: ValidateUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    if (message.password !== "") {
+      writer.uint32(18).string(message.password);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ValidateUserRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseValidateUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.password = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseValidateUserResponse(): ValidateUserResponse {
+  return {};
+}
+
+export const ValidateUserResponse: MessageFns<ValidateUserResponse> = {
+  encode(message: ValidateUserResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.user !== undefined) {
+      User.encode(message.user, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ValidateUserResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseValidateUserResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.user = User.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+export interface UserServiceClient {
   getUser(request: GetUserRequest, metadata?: Metadata): Observable<GetUserResponse>;
 
   createUser(request: CreateUserRequest, metadata?: Metadata): Observable<CreateUserResponse>;
+
+  validateUser(request: ValidateUserRequest, metadata?: Metadata): Observable<ValidateUserResponse>;
 }
 
-export interface UserController {
+export interface UserServiceController {
   getUser(
     request: GetUserRequest,
     metadata?: Metadata,
@@ -266,29 +403,34 @@ export interface UserController {
     request: CreateUserRequest,
     metadata?: Metadata,
   ): Promise<CreateUserResponse> | Observable<CreateUserResponse> | CreateUserResponse;
+
+  validateUser(
+    request: ValidateUserRequest,
+    metadata?: Metadata,
+  ): Promise<ValidateUserResponse> | Observable<ValidateUserResponse> | ValidateUserResponse;
 }
 
-export function UserControllerMethods() {
+export function UserServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["getUser", "createUser"];
+    const grpcMethods: string[] = ["getUser", "createUser", "validateUser"];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("User", method)(constructor.prototype[method], method, descriptor);
+      GrpcMethod("UserService", method)(constructor.prototype[method], method, descriptor);
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("User", method)(constructor.prototype[method], method, descriptor);
+      GrpcStreamMethod("UserService", method)(constructor.prototype[method], method, descriptor);
     }
   };
 }
 
-export const USER_SERVICE_NAME = "User";
+export const USER_SERVICE_NAME = "UserService";
 
-export type UserService = typeof UserService;
-export const UserService = {
+export type UserServiceService = typeof UserServiceService;
+export const UserServiceService = {
   getUser: {
-    path: "/user.User/GetUser" as const,
+    path: "/user.UserService/GetUser" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: GetUserRequest): Buffer => Buffer.from(GetUserRequest.encode(value).finish()),
@@ -297,7 +439,7 @@ export const UserService = {
     responseDeserialize: (value: Buffer): GetUserResponse => GetUserResponse.decode(value),
   },
   createUser: {
-    path: "/user.User/CreateUser" as const,
+    path: "/user.UserService/CreateUser" as const,
     requestStream: false as const,
     responseStream: false as const,
     requestSerialize: (value: CreateUserRequest): Buffer => Buffer.from(CreateUserRequest.encode(value).finish()),
@@ -305,11 +447,22 @@ export const UserService = {
     responseSerialize: (value: CreateUserResponse): Buffer => Buffer.from(CreateUserResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): CreateUserResponse => CreateUserResponse.decode(value),
   },
+  validateUser: {
+    path: "/user.UserService/ValidateUser" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: ValidateUserRequest): Buffer => Buffer.from(ValidateUserRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): ValidateUserRequest => ValidateUserRequest.decode(value),
+    responseSerialize: (value: ValidateUserResponse): Buffer =>
+      Buffer.from(ValidateUserResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): ValidateUserResponse => ValidateUserResponse.decode(value),
+  },
 } as const;
 
-export interface UserServer extends UntypedServiceImplementation {
+export interface UserServiceServer extends UntypedServiceImplementation {
   getUser: handleUnaryCall<GetUserRequest, GetUserResponse>;
   createUser: handleUnaryCall<CreateUserRequest, CreateUserResponse>;
+  validateUser: handleUnaryCall<ValidateUserRequest, ValidateUserResponse>;
 }
 
 export interface MessageFns<T> {

@@ -1,17 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import {
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
-  ValidateTokenRequest,
-  ValidateTokenResponse,
-} from 'libs/packages/generated/auth';
+import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ValidateTokenRequest, ValidateTokenResponse } from '@package/packages';
+import { User } from '@package/packages/generated/user';
+
 
 @Injectable()
 export class OyanaAuthService {
   async login(request: LoginRequest): Promise<LoginResponse> {
-    // Implement login logic here
+    
     return { token: 'dummy-token' };
   }
 
@@ -32,5 +27,10 @@ export class OyanaAuthService {
       userId: 'dummy-user-id',
       email: 'dummy@example.com',
     };
+  }
+
+  private generateToken(user:User): string {
+    // Implement token generation logic here
+    return 'dummy-token';
   }
 }

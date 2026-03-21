@@ -1,17 +1,8 @@
 import { Controller, Get } from '@nestjs/common';
 import { OyanaAuthService } from './oyana-auth.service';
-import {
-  AuthController,
-  AuthControllerMethods,
-  LoginRequest,
-  LoginResponse,
-  RegisterRequest,
-  RegisterResponse,
-  ValidateTokenRequest,
-  ValidateTokenResponse,
-} from 'libs/packages/generated/auth';
 import { Metadata } from '@grpc/grpc-js';
 import { Observable } from 'rxjs';
+import { AuthController, AuthControllerMethods, LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, ValidateTokenRequest, ValidateTokenResponse } from '@package/packages';
 
 @Controller()
 @AuthControllerMethods()
