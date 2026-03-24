@@ -15,10 +15,7 @@ describe('OyanaDriverController (e2e)', () => {
     await app.init();
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
-      .get('/')
-      .expect(200)
-      .expect('Hello World!');
+  it('returns 404 for the default HTTP route', () => {
+    return request(app.getHttpServer()).get('/').expect(404);
   });
 });
