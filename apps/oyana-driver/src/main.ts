@@ -9,7 +9,7 @@ async function bootstrap() {
      transport: Transport.GRPC,
      options: {
        package: 'driver',
-       protoPath: join(process.cwd(), '/libs/packages/proto/driver.proto'),
+       protoPath: join(process.cwd(), '/libs/packages/src/proto/driver.proto'),
        url: '0.0.0.0:50051',
      },
    });

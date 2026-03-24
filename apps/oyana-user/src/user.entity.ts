@@ -1,5 +1,6 @@
-import { Entity, Column, ObjectIdColumn, ObjectId, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User as UserInterface } from '@package/packages';
+import { ObjectId } from 'mongodb';
 
 type UserGrpcCompatible = Omit<User, '_id'> & UserInterface;
 

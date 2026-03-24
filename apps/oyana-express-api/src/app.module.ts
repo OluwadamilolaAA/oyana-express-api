@@ -13,7 +13,7 @@ import { join } from 'path';
         transport: Transport.GRPC,
         options: {
           package: 'auth',
-          protoPath: join(process.cwd(), '/libs/packages/proto/auth.proto'),
+          protoPath: join(process.cwd(), '/libs/packages/src/proto/auth.proto'),
           url: process.env.AUTH_GRPC_URL || 'localhost:3000',
         },
       },
@@ -24,7 +24,7 @@ import { join } from 'path';
         transport: Transport.GRPC,
         options: {
           package: 'user',
-          protoPath: join(process.cwd(), '/libs/packages/proto/user.proto'),
+          protoPath: join(process.cwd(), '/libs/packages/src/proto/user.proto'),
           url: process.env.USER_GRPC_URL || 'localhost:3100',
         },
       },

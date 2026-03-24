@@ -18,7 +18,9 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  token: string;
+  accessToken: string;
+  refreshToken: string;
+  sessionId: string;
 }
 
 export interface RegisterRequest {
@@ -40,6 +42,58 @@ export interface ValidateTokenResponse {
   isValid: boolean;
   userId: string;
   email: string;
+  role: string;
+  sessionId: string;
+}
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+  sessionId: string;
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface LogoutRequest {
+  sessionId: string;
+}
+
+export interface LogoutResponse {
+  message: string;
+}
+
+export interface SendOTPRequest {
+  userId: string;
+  /** EMAIL_VERIFICATION, PHONE_VERIFICATION, PASSWORD_RESET */
+  type: string;
+}
+
+export interface SendOTPResponse {
+  message: string;
+}
+
+export interface VerifyOTPRequest {
+  userId: string;
+  code: string;
+  type: string;
+}
+
+export interface VerifyOTPResponse {
+  verified: boolean;
+}
+
+export interface GetAuthContextRequest {
+  token: string;
+}
+
+export interface GetAuthContextResponse {
+  isValid: boolean;
+  userId: string;
+  email: string;
+  role: string;
+  sessionId: string;
 }
 
 export const AUTH_PACKAGE_NAME = "auth";
@@ -93,13 +147,19 @@ export const LoginRequest: MessageFns<LoginRequest> = {
 };
 
 function createBaseLoginResponse(): LoginResponse {
-  return { token: "" };
+  return { accessToken: "", refreshToken: "", sessionId: "" };
 }
 
 export const LoginResponse: MessageFns<LoginResponse> = {
   encode(message: LoginResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
+    if (message.accessToken !== "") {
+      writer.uint32(10).string(message.accessToken);
+    }
+    if (message.refreshToken !== "") {
+      writer.uint32(18).string(message.refreshToken);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(26).string(message.sessionId);
     }
     return writer;
   },
@@ -116,7 +176,23 @@ export const LoginResponse: MessageFns<LoginResponse> = {
             break;
           }
 
-          message.token = reader.string();
+          message.accessToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.refreshToken = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.sessionId = reader.string();
           continue;
         }
       }
@@ -274,7 +350,7 @@ export const ValidateTokenRequest: MessageFns<ValidateTokenRequest> = {
 };
 
 function createBaseValidateTokenResponse(): ValidateTokenResponse {
-  return { isValid: false, userId: "", email: "" };
+  return { isValid: false, userId: "", email: "", role: "", sessionId: "" };
 }
 
 export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
@@ -287,6 +363,12 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
     }
     if (message.email !== "") {
       writer.uint32(26).string(message.email);
+    }
+    if (message.role !== "") {
+      writer.uint32(34).string(message.role);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(42).string(message.sessionId);
     }
     return writer;
   },
@@ -322,6 +404,491 @@ export const ValidateTokenResponse: MessageFns<ValidateTokenResponse> = {
           message.email = reader.string();
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.role = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseRefreshTokenRequest(): RefreshTokenRequest {
+  return { refreshToken: "", sessionId: "" };
+}
+
+export const RefreshTokenRequest: MessageFns<RefreshTokenRequest> = {
+  encode(message: RefreshTokenRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.refreshToken !== "") {
+      writer.uint32(10).string(message.refreshToken);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(18).string(message.sessionId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefreshTokenRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefreshTokenRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.refreshToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseRefreshTokenResponse(): RefreshTokenResponse {
+  return { accessToken: "", refreshToken: "" };
+}
+
+export const RefreshTokenResponse: MessageFns<RefreshTokenResponse> = {
+  encode(message: RefreshTokenResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.accessToken !== "") {
+      writer.uint32(10).string(message.accessToken);
+    }
+    if (message.refreshToken !== "") {
+      writer.uint32(18).string(message.refreshToken);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RefreshTokenResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRefreshTokenResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.accessToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.refreshToken = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseLogoutRequest(): LogoutRequest {
+  return { sessionId: "" };
+}
+
+export const LogoutRequest: MessageFns<LogoutRequest> = {
+  encode(message: LogoutRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogoutRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseLogoutResponse(): LogoutResponse {
+  return { message: "" };
+}
+
+export const LogoutResponse: MessageFns<LogoutResponse> = {
+  encode(message: LogoutResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogoutResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogoutResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseSendOTPRequest(): SendOTPRequest {
+  return { userId: "", type: "" };
+}
+
+export const SendOTPRequest: MessageFns<SendOTPRequest> = {
+  encode(message: SendOTPRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    if (message.type !== "") {
+      writer.uint32(18).string(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendOTPRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendOTPRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseSendOTPResponse(): SendOTPResponse {
+  return { message: "" };
+}
+
+export const SendOTPResponse: MessageFns<SendOTPResponse> = {
+  encode(message: SendOTPResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SendOTPResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSendOTPResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseVerifyOTPRequest(): VerifyOTPRequest {
+  return { userId: "", code: "", type: "" };
+}
+
+export const VerifyOTPRequest: MessageFns<VerifyOTPRequest> = {
+  encode(message: VerifyOTPRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
+    if (message.code !== "") {
+      writer.uint32(18).string(message.code);
+    }
+    if (message.type !== "") {
+      writer.uint32(26).string(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyOTPRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyOTPRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.code = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseVerifyOTPResponse(): VerifyOTPResponse {
+  return { verified: false };
+}
+
+export const VerifyOTPResponse: MessageFns<VerifyOTPResponse> = {
+  encode(message: VerifyOTPResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.verified !== false) {
+      writer.uint32(8).bool(message.verified);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): VerifyOTPResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyOTPResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.verified = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseGetAuthContextRequest(): GetAuthContextRequest {
+  return { token: "" };
+}
+
+export const GetAuthContextRequest: MessageFns<GetAuthContextRequest> = {
+  encode(message: GetAuthContextRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.token !== "") {
+      writer.uint32(10).string(message.token);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetAuthContextRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetAuthContextRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.token = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseGetAuthContextResponse(): GetAuthContextResponse {
+  return { isValid: false, userId: "", email: "", role: "", sessionId: "" };
+}
+
+export const GetAuthContextResponse: MessageFns<GetAuthContextResponse> = {
+  encode(message: GetAuthContextResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.isValid !== false) {
+      writer.uint32(8).bool(message.isValid);
+    }
+    if (message.userId !== "") {
+      writer.uint32(18).string(message.userId);
+    }
+    if (message.email !== "") {
+      writer.uint32(26).string(message.email);
+    }
+    if (message.role !== "") {
+      writer.uint32(34).string(message.role);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(42).string(message.sessionId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetAuthContextResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetAuthContextResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.isValid = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.userId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.role = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -338,6 +905,16 @@ export interface AuthClient {
   register(request: RegisterRequest, metadata?: Metadata): Observable<RegisterResponse>;
 
   validateToken(request: ValidateTokenRequest, metadata?: Metadata): Observable<ValidateTokenResponse>;
+
+  refreshToken(request: RefreshTokenRequest, metadata?: Metadata): Observable<RefreshTokenResponse>;
+
+  logout(request: LogoutRequest, metadata?: Metadata): Observable<LogoutResponse>;
+
+  sendOtp(request: SendOTPRequest, metadata?: Metadata): Observable<SendOTPResponse>;
+
+  verifyOtp(request: VerifyOTPRequest, metadata?: Metadata): Observable<VerifyOTPResponse>;
+
+  getAuthContext(request: GetAuthContextRequest, metadata?: Metadata): Observable<GetAuthContextResponse>;
 }
 
 export interface AuthController {
@@ -352,11 +929,45 @@ export interface AuthController {
     request: ValidateTokenRequest,
     metadata?: Metadata,
   ): Promise<ValidateTokenResponse> | Observable<ValidateTokenResponse> | ValidateTokenResponse;
+
+  refreshToken(
+    request: RefreshTokenRequest,
+    metadata?: Metadata,
+  ): Promise<RefreshTokenResponse> | Observable<RefreshTokenResponse> | RefreshTokenResponse;
+
+  logout(
+    request: LogoutRequest,
+    metadata?: Metadata,
+  ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse;
+
+  sendOtp(
+    request: SendOTPRequest,
+    metadata?: Metadata,
+  ): Promise<SendOTPResponse> | Observable<SendOTPResponse> | SendOTPResponse;
+
+  verifyOtp(
+    request: VerifyOTPRequest,
+    metadata?: Metadata,
+  ): Promise<VerifyOTPResponse> | Observable<VerifyOTPResponse> | VerifyOTPResponse;
+
+  getAuthContext(
+    request: GetAuthContextRequest,
+    metadata?: Metadata,
+  ): Promise<GetAuthContextResponse> | Observable<GetAuthContextResponse> | GetAuthContextResponse;
 }
 
 export function AuthControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["login", "register", "validateToken"];
+    const grpcMethods: string[] = [
+      "login",
+      "register",
+      "validateToken",
+      "refreshToken",
+      "logout",
+      "sendOtp",
+      "verifyOtp",
+      "getAuthContext",
+    ];
     for (const method of grpcMethods) {
       const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
       GrpcMethod("Auth", method)(constructor.prototype[method], method, descriptor);
@@ -401,12 +1012,65 @@ export const AuthService = {
       Buffer.from(ValidateTokenResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer): ValidateTokenResponse => ValidateTokenResponse.decode(value),
   },
+  refreshToken: {
+    path: "/auth.Auth/RefreshToken" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: RefreshTokenRequest): Buffer => Buffer.from(RefreshTokenRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): RefreshTokenRequest => RefreshTokenRequest.decode(value),
+    responseSerialize: (value: RefreshTokenResponse): Buffer =>
+      Buffer.from(RefreshTokenResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): RefreshTokenResponse => RefreshTokenResponse.decode(value),
+  },
+  logout: {
+    path: "/auth.Auth/Logout" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: LogoutRequest): Buffer => Buffer.from(LogoutRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): LogoutRequest => LogoutRequest.decode(value),
+    responseSerialize: (value: LogoutResponse): Buffer => Buffer.from(LogoutResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): LogoutResponse => LogoutResponse.decode(value),
+  },
+  sendOtp: {
+    path: "/auth.Auth/SendOTP" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: SendOTPRequest): Buffer => Buffer.from(SendOTPRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): SendOTPRequest => SendOTPRequest.decode(value),
+    responseSerialize: (value: SendOTPResponse): Buffer => Buffer.from(SendOTPResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): SendOTPResponse => SendOTPResponse.decode(value),
+  },
+  verifyOtp: {
+    path: "/auth.Auth/VerifyOTP" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: VerifyOTPRequest): Buffer => Buffer.from(VerifyOTPRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): VerifyOTPRequest => VerifyOTPRequest.decode(value),
+    responseSerialize: (value: VerifyOTPResponse): Buffer => Buffer.from(VerifyOTPResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): VerifyOTPResponse => VerifyOTPResponse.decode(value),
+  },
+  getAuthContext: {
+    path: "/auth.Auth/GetAuthContext" as const,
+    requestStream: false as const,
+    responseStream: false as const,
+    requestSerialize: (value: GetAuthContextRequest): Buffer =>
+      Buffer.from(GetAuthContextRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer): GetAuthContextRequest => GetAuthContextRequest.decode(value),
+    responseSerialize: (value: GetAuthContextResponse): Buffer =>
+      Buffer.from(GetAuthContextResponse.encode(value).finish()),
+    responseDeserialize: (value: Buffer): GetAuthContextResponse => GetAuthContextResponse.decode(value),
+  },
 } as const;
 
 export interface AuthServer extends UntypedServiceImplementation {
   login: handleUnaryCall<LoginRequest, LoginResponse>;
   register: handleUnaryCall<RegisterRequest, RegisterResponse>;
   validateToken: handleUnaryCall<ValidateTokenRequest, ValidateTokenResponse>;
+  refreshToken: handleUnaryCall<RefreshTokenRequest, RefreshTokenResponse>;
+  logout: handleUnaryCall<LogoutRequest, LogoutResponse>;
+  sendOtp: handleUnaryCall<SendOTPRequest, SendOTPResponse>;
+  verifyOtp: handleUnaryCall<VerifyOTPRequest, VerifyOTPResponse>;
+  getAuthContext: handleUnaryCall<GetAuthContextRequest, GetAuthContextResponse>;
 }
 
 export interface MessageFns<T> {

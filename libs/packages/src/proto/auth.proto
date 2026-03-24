@@ -7,6 +7,13 @@ service Auth {
   rpc Login (LoginRequest) returns (LoginResponse);
   rpc Register (RegisterRequest) returns (RegisterResponse);
   rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
+  rpc RefreshToken (RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc Logout (LogoutRequest) returns (LogoutResponse);
+
+  rpc SendOTP (SendOTPRequest) returns (SendOTPResponse);
+  rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
+
+  rpc GetAuthContext (GetAuthContextRequest) returns (GetAuthContextResponse);
 }
 
 
@@ -16,7 +23,9 @@ message LoginRequest {
 }
 
 message LoginResponse {
-  string token = 1;
+  string accessToken = 1;
+  string refreshToken = 2;
+  string sessionId = 3;
 }
 
 message RegisterRequest {
@@ -38,4 +47,56 @@ message ValidateTokenResponse {
   bool isValid = 1;
   string userId = 2;
   string email = 3;
+  string role = 4;
+  string sessionId = 5;
+  
+}
+
+message RefreshTokenRequest {
+  string refreshToken = 1;
+  string sessionId = 2;
+}
+
+message RefreshTokenResponse {
+  string accessToken = 1;
+  string refreshToken = 2;
+}
+
+message LogoutRequest {
+  string sessionId = 1;
+}
+
+message LogoutResponse {
+  string message = 1;
+}
+
+message SendOTPRequest {
+  string userId = 1;
+  string type = 2; // EMAIL_VERIFICATION, PHONE_VERIFICATION, PASSWORD_RESET
+}
+
+message SendOTPResponse {
+  string message = 1;
+}
+
+message VerifyOTPRequest {
+  string userId = 1;
+  string code = 2;
+  string type = 3;
+}
+
+message VerifyOTPResponse {
+  bool verified = 1;
+}
+
+message GetAuthContextRequest {
+  string token = 1;
+}
+
+message GetAuthContextResponse {
+  bool isValid = 1;
+  string userId = 2;
+  string email = 3;
+  string role = 4;
+  string sessionId = 5;
 }
