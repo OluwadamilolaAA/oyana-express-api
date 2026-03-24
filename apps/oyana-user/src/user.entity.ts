@@ -1,11 +1,16 @@
-import { Entity, Column, ObjectIdColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  ObjectIdColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Index,
+} from 'typeorm';
 import { User as UserInterface } from '@package/packages';
 import { ObjectId } from 'mongodb';
 
-type UserGrpcCompatible = Omit<User, '_id'> & UserInterface;
-
 @Entity()
-export class User implements UserGrpcCompatible {
+export class User implements UserInterface {
   @ObjectIdColumn({ name: 'id' })
   _id: ObjectId;
 
@@ -13,19 +18,20 @@ export class User implements UserGrpcCompatible {
     return this._id.toString();
   }
 
-  @Column({ length: 500 })
+  @Column({ length: 120 })
   name: string;
 
+  @Index({ unique: true })
   @Column()
   email: string;
 
   @Column()
   password: string;
 
-  @Column()
+  @Column({ default: '' })
   phone: string;
 
-  @Column()
+  @Column({ default: 'customer' })
   role: 'customer' | 'admin' | 'driver';
 
   @CreateDateColumn()
@@ -33,5 +39,4 @@ export class User implements UserGrpcCompatible {
 
   @UpdateDateColumn()
   updatedAt: Date;
-
 }

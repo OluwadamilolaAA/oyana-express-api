@@ -1,13 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { Credential } from '../Entities/credentials.entity';
+import { AUTH_CREDENTIAL_REPOSITORY } from '../auth.providers';
+import { Credential } from '../entities/credentials.entity';
 
 @Injectable()
 export class CredentialService {
   constructor(
-    @InjectRepository(Credential)
+    @Inject(AUTH_CREDENTIAL_REPOSITORY)
     private readonly repo: MongoRepository<Credential>,
   ) {}
 
@@ -69,14 +69,14 @@ export class CredentialService {
       authIdentityId,
       type: provider,
       providerId,
-      isPrimary: !existing, 
+      isPrimary: !existing,
     });
 
     return this.repo.save(credential);
   }
 
   // FIND CREDENTIAL
-  async findByUserId(userId: string) {
+  async findByUserId(userId: string): Promise<Credential[]> {
     return this.repo.find({
       where: { userId },
     });

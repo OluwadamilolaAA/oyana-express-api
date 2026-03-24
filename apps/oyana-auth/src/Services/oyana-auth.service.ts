@@ -8,12 +8,25 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
+  GetAuthContextRequest,
+  GetAuthContextResponse,
   LoginRequest,
   LoginResponse,
+  LogoutRequest,
+  LogoutResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  requireEmail,
+  requireNonEmptyString,
+  requirePassword,
+  SendOTPRequest,
+  SendOTPResponse,
   ValidateTokenRequest,
   ValidateTokenResponse,
+  VerifyOTPRequest,
+  VerifyOTPResponse,
   User,
 } from '@package/packages';
 import { UserServiceClient } from '@package/packages';
@@ -21,7 +34,17 @@ import { firstValueFrom } from 'rxjs';
 import { AuditLogService } from './audit-log.service';
 import * as bcrypt from 'bcrypt';
 import { SessionService } from './oyana-session.service';
-import { AuthEventType } from '../Entities/audit-log.entity';
+import { AuthEventType } from '../entities/audit-log.entity';
+import { OTPService } from './generate-otp.service';
+import { OTPType } from '../entities/verification-otp.entity';
+
+interface AuthTokenPayload {
+  sub: string;
+  email: string;
+  role: string;
+  sessionId?: string;
+  type: 'access' | 'refresh';
+}
 
 @Injectable()
 export class OyanaAuthService implements OnModuleInit {
@@ -32,40 +55,43 @@ export class OyanaAuthService implements OnModuleInit {
     private readonly jwtService: JwtService,
     private readonly auditLogService: AuditLogService,
     private readonly sessionService: SessionService,
+    private readonly otpService: OTPService,
   ) {}
 
-  onModuleInit() {
+  onModuleInit(): void {
     this.userService = this.client.getService<UserServiceClient>('UserService');
   }
 
-  
   async login(request: LoginRequest): Promise<LoginResponse> {
+    const email = requireEmail(request.email);
+    const password = requirePassword(request.password);
+
     const response = await firstValueFrom(
       this.userService.validateUser({
-        email: request.email,
-        password: request.password,
+        email,
+        password,
       }),
     );
 
     if (!response?.user) {
       await this.auditLogService.log({
         eventType: AuthEventType.LOGIN_FAILED,
-        metadata: { email: request.email },
+        metadata: { email },
       });
 
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const user = response.user;
-
-    const accessToken = this.generateAccessToken(user);
-    const refreshToken = this.generateRefreshToken(user);
+    const refreshToken = this.generateRefreshToken(user.id);
 
     const session = await this.sessionService.createSession(
       user,
       refreshToken,
       {},
     );
+
+    const accessToken = this.generateAccessToken(user, session.id);
 
     await this.auditLogService.log({
       userId: user.id,
@@ -79,10 +105,17 @@ export class OyanaAuthService implements OnModuleInit {
     };
   }
 
-
   async register(request: RegisterRequest): Promise<RegisterResponse> {
+    const email = requireEmail(request.email);
+    const password = requirePassword(request.password);
+    const name = requireNonEmptyString(request.name, 'Name');
+
     const response = await firstValueFrom(
-      this.userService.createUser(request),
+      this.userService.createUser({
+        email,
+        password,
+        name,
+      }),
     );
 
     if (!response?.user) {
@@ -104,44 +137,47 @@ export class OyanaAuthService implements OnModuleInit {
     request: ValidateTokenRequest,
   ): Promise<ValidateTokenResponse> {
     try {
-      const payload = this.jwtService.verify(request.token);
+      const token = requireNonEmptyString(request.token, 'Token');
+      const payload = this.jwtService.verify<AuthTokenPayload>(token);
+
+      if (payload.type !== 'access') {
+        return this.invalidTokenResponse();
+      }
+
+      if (payload.sessionId) {
+        const session = await this.sessionService.validateSession(payload.sessionId);
+
+        if (!session || session.userId !== payload.sub) {
+          return this.invalidTokenResponse();
+        }
+      }
 
       return {
         isValid: true,
         userId: payload.sub,
         email: payload.email,
         role: payload.role || '',
-  sessionId: payload.sessionId || '',
+        sessionId: payload.sessionId || '',
       };
-    } catch (error) {
+    } catch {
       await this.auditLogService.log({
         eventType: AuthEventType.LOGIN_FAILED,
         metadata: { reason: 'INVALID_TOKEN' },
       });
 
-      return {
-        isValid: false,
-        userId: '',
-        email: '',
-        role: '',
-  sessionId: '',
-      };
+      return this.invalidTokenResponse();
     }
   }
 
+  async refreshToken(
+    request: RefreshTokenRequest,
+  ): Promise<RefreshTokenResponse> {
+    const sessionId = requireNonEmptyString(request.sessionId, 'Session id');
+    const refreshToken = requireNonEmptyString(
+      request.refreshToken,
+      'Refresh token',
+    );
 
-  async logout(sessionId: string) {
-    await this.sessionService.revokeSession(sessionId);
-
-    await this.auditLogService.log({
-      eventType: AuthEventType.LOGOUT,
-      metadata: { sessionId },
-    });
-
-    return { message: 'Logged out successfully' };
-  }
-
-  async refreshToken(sessionId: string, refreshToken: string) {
     const session = await this.sessionService.validateSession(sessionId);
 
     if (!session) {
@@ -157,40 +193,119 @@ export class OyanaAuthService implements OnModuleInit {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const accessToken = this.generateAccessToken({
-      id: session.userId,
-    } as User);
+    const user = await this.getUserById(session.userId);
+    const newRefreshToken = this.generateRefreshToken(session.userId);
 
-    const newRefreshToken = this.generateRefreshToken({
-      id: session.userId,
-    } as User);
-
-    await this.sessionService.updateRefreshToken(
-      session.id,
-      newRefreshToken,
-    );
+    await this.sessionService.updateRefreshToken(session.id, newRefreshToken);
 
     return {
-      accessToken,
+      accessToken: this.generateAccessToken(user, session.id),
       refreshToken: newRefreshToken,
     };
   }
 
-  private generateAccessToken(user: User): string {
+  async logout(request: LogoutRequest): Promise<LogoutResponse> {
+    const sessionId = requireNonEmptyString(request.sessionId, 'Session id');
+
+    await this.sessionService.revokeSession(sessionId);
+
+    await this.auditLogService.log({
+      eventType: AuthEventType.LOGOUT,
+      metadata: { sessionId },
+    });
+
+    return { message: 'Logged out successfully' };
+  }
+
+  async sendOtp(request: SendOTPRequest): Promise<SendOTPResponse> {
+    const userId = requireNonEmptyString(request.userId, 'User id');
+    const otpType = this.normalizeOtpType(request.type);
+
+    await this.otpService.generateOTP(userId, otpType);
+
+    await this.auditLogService.log({
+      userId,
+      eventType: AuthEventType.PASSWORD_RESET_REQUESTED,
+      metadata: { type: otpType },
+    });
+
+    return {
+      message: 'OTP generated successfully',
+    };
+  }
+
+  async verifyOtp(request: VerifyOTPRequest): Promise<VerifyOTPResponse> {
+    const userId = requireNonEmptyString(request.userId, 'User id');
+    const code = requireNonEmptyString(request.code, 'OTP code');
+    const otpType = this.normalizeOtpType(request.type);
+
+    const verified = await this.otpService.verifyOTP(userId, code, otpType);
+
+    return { verified };
+  }
+
+  async getAuthContext(
+    request: GetAuthContextRequest,
+  ): Promise<GetAuthContextResponse> {
+    return this.validateToken({ token: request.token });
+  }
+
+  private async getUserById(userId: string): Promise<User> {
+    const response = await firstValueFrom(this.userService.getUser({ userId }));
+
+    if (!response.user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return response.user;
+  }
+
+  private generateAccessToken(user: User, sessionId: string): string {
     return this.jwtService.sign(
       {
         sub: user.id,
         email: user.email,
         role: user.role,
-      },
+        sessionId,
+        type: 'access',
+      } satisfies AuthTokenPayload,
       { expiresIn: '15m' },
     );
   }
 
-  private generateRefreshToken(user: User): string {
+  private generateRefreshToken(userId: string): string {
     return this.jwtService.sign(
-      { sub: user.id },
+      {
+        sub: userId,
+        email: '',
+        role: '',
+        type: 'refresh',
+      } satisfies AuthTokenPayload,
       { expiresIn: '7d' },
     );
+  }
+
+  private normalizeOtpType(type: string): OTPType {
+    const normalizedType = requireNonEmptyString(type, 'OTP type').toUpperCase();
+
+    if (
+      normalizedType !== 'EMAIL_VERIFICATION' &&
+      normalizedType !== 'PHONE_VERIFICATION' &&
+      normalizedType !== 'PASSWORD_RESET'
+    ) {
+      throw new BadRequestException('Unsupported OTP type');
+    }
+
+    return normalizedType as OTPType;
+  }
+
+  private invalidTokenResponse(): ValidateTokenResponse {
+    return {
+      isValid: false,
+      userId: '',
+      email: '',
+      role: '',
+      sessionId: '',
+    };
   }
 }

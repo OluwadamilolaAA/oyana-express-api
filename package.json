@@ -20,6 +20,7 @@
     "test:e2e": "jest --config ./apps/oyana-express-api/test/jest-e2e.json",
     "start:user": "nest start oyana-user --watch",
     "start:auth": "nest start oyana-auth --watch",
+    "start:driver": "nest start oyana-driver --watch",
     "start:gateway": "nest start oyana-express-api --watch",
     "proto:clean": "node ./scripts/proto-clean.js",
     "proto:gen": "npm run proto:clean && node ./scripts/proto-gen-tsproto.js"

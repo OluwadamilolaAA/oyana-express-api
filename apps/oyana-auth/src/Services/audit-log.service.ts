@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { Inject, Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
-import { AuthAuditLog } from '../Entities/audit-log.entity';
+import { AUTH_AUDIT_LOG_REPOSITORY } from '../auth.providers';
+import { AuthAuditLog } from '../entities/audit-log.entity';
 
 @Injectable()
 export class AuditLogService {
   constructor(
-    @InjectRepository(AuthAuditLog)
+    @Inject(AUTH_AUDIT_LOG_REPOSITORY)
     private readonly repo: MongoRepository<AuthAuditLog>,
   ) {}
 

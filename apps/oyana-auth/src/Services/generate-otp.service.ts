@@ -1,18 +1,19 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { randomInt } from 'crypto';
 import dayjs from 'dayjs';
 import { MongoRepository } from 'typeorm';
-import { OTPType, OtpVerification } from '../Entities/verification-otp.entity';
+import { AUTH_OTP_REPOSITORY } from '../auth.providers';
+import { OTPType, OtpVerification } from '../entities/verification-otp.entity';
 
 @Injectable()
 export class OTPService {
   constructor(
-    @InjectRepository(OtpVerification)
+    @Inject(AUTH_OTP_REPOSITORY)
     private otpRepo: MongoRepository<OtpVerification>,
   ) {}
 
-  async generateOTP(userId: string, type: OTPType) {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+  async generateOTP(userId: string, type: OTPType): Promise<string> {
+    const code = randomInt(0, 1_000_000).toString().padStart(6, '0');
 
     const otp = this.otpRepo.create({
       userId,
@@ -26,7 +27,7 @@ export class OTPService {
     return code;
   }
 
-  async verifyOTP(userId: string, code: string, type: OTPType) {
+  async verifyOTP(userId: string, code: string, type: OTPType): Promise<boolean> {
     const otp = await this.otpRepo.findOne({
       where: { userId, code, type },
     });

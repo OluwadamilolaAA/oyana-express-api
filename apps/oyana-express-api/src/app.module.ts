@@ -2,30 +2,40 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { join } from 'path';
+import {
+  DEFAULT_PORTS,
+  getGrpcClientUrl,
+  getProtoPath,
+} from '@package/packages';
 
 @Module({
   imports: [
     ClientsModule.register([
-      //  AUTH SERVICE
       {
         name: 'AUTH_SERVICE',
         transport: Transport.GRPC,
         options: {
           package: 'auth',
-          protoPath: join(process.cwd(), '/libs/packages/src/proto/auth.proto'),
-          url: process.env.AUTH_GRPC_URL || 'localhost:3000',
+          protoPath: getProtoPath('auth.proto'),
+          url: getGrpcClientUrl('AUTH_GRPC_URL', DEFAULT_PORTS.authGrpc),
         },
       },
-
-      //  USER SERVICE
       {
         name: 'USER_SERVICE',
         transport: Transport.GRPC,
         options: {
           package: 'user',
-          protoPath: join(process.cwd(), '/libs/packages/src/proto/user.proto'),
-          url: process.env.USER_GRPC_URL || 'localhost:3100',
+          protoPath: getProtoPath('user.proto'),
+          url: getGrpcClientUrl('USER_GRPC_URL', DEFAULT_PORTS.userGrpc),
+        },
+      },
+      {
+        name: 'DRIVER_SERVICE',
+        transport: Transport.GRPC,
+        options: {
+          package: 'driver',
+          protoPath: getProtoPath('driver.proto'),
+          url: getGrpcClientUrl('DRIVER_GRPC_URL', DEFAULT_PORTS.driverGrpc),
         },
       },
     ]),

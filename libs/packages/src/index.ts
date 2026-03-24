@@ -1,19 +1,33 @@
-import { RegisterRequest } from './generated/auth';
-
 export * from './packages.module';
 export * from './packages.service';
+export * from './runtime-config';
+export * from './validation';
 export { type AuthController, AuthControllerMethods } from './generated/auth';
 export {
   type UserServiceController,
   UserServiceControllerMethods,
 } from './generated/user';
+export {
+  type DriverServiceController,
+  DriverServiceControllerMethods,
+} from './generated/driver';
 export type {
+  GetAuthContextRequest,
+  GetAuthContextResponse,
   LoginRequest,
   LoginResponse,
+  LogoutRequest,
+  LogoutResponse,
+  RefreshTokenRequest,
+  RefreshTokenResponse,
   ValidateTokenRequest,
   ValidateTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  SendOTPRequest,
+  SendOTPResponse,
+  VerifyOTPRequest,
+  VerifyOTPResponse,
 } from './generated/auth';
 
 export type {
@@ -24,5 +38,18 @@ export type {
   ValidateUserRequest,
   ValidateUserResponse,
   User,
-  UserServiceClient
+  UserServiceClient,
 } from './generated/user';
+
+export type {
+  CreateDriverRequest,
+  CreateDriverResponse,
+  Driver,
+  DriverServiceClient,
+  GetDriverRequest,
+  GetDriverResponse,
+  ListDriversRequest,
+  ListDriversResponse,
+  UpdateDriverRequest,
+  UpdateDriverResponse,
+} from './generated/driver';

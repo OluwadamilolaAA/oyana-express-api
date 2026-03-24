@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import { ObjectId } from 'mongodb';
 import { User } from '@package/packages';
-import { Session } from '../Entities/session.entity';
+import { AUTH_SESSION_REPOSITORY } from '../auth.providers';
+import { Session } from '../entities/session.entity';
+
+export interface SessionMetadata {
+  ipAddress?: string;
+  userAgent?: string;
+}
 
 @Injectable()
 export class SessionService {
   constructor(
-    @InjectRepository(Session)
+    @Inject(AUTH_SESSION_REPOSITORY)
     private readonly repo: MongoRepository<Session>,
   ) {}
 
-  async createSession(user: User, refreshToken: string, meta: any) {
+  async createSession(
+    user: User,
+    refreshToken: string,
+    meta: SessionMetadata = {},
+  ): Promise<Session> {
     const session = this.repo.create({
       userId: user.id,
       authIdentityId: user.id,
       refreshTokenHash: await bcrypt.hash(refreshToken, 10),
-      ipAddress: meta?.ip,
-      userAgent: meta?.userAgent,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
       expiresAt: dayjs().add(7, 'days').toDate(),
       isActive: true,
     });
@@ -28,7 +37,11 @@ export class SessionService {
     return this.repo.save(session);
   }
 
-  async validateSession(sessionId: string) {
+  async validateSession(sessionId: string): Promise<Session | null> {
+    if (!ObjectId.isValid(sessionId)) {
+      return null;
+    }
+
     const session = await this.repo.findOne({
       where: { _id: new ObjectId(sessionId) },
     });
@@ -41,9 +54,11 @@ export class SessionService {
     return session;
   }
 
-  async revokeSession(sessionId: string) {
+  async revokeSession(sessionId: string): Promise<void> {
+    const objectId = this.toObjectId(sessionId);
+
     await this.repo.updateOne(
-      { _id: new ObjectId(sessionId) },
+      { _id: objectId },
       {
         $set: {
           isActive: false,
@@ -54,14 +69,24 @@ export class SessionService {
     );
   }
 
-  async updateRefreshToken(sessionId: string, refreshToken: string) {
+  async updateRefreshToken(sessionId: string, refreshToken: string): Promise<void> {
+    const objectId = this.toObjectId(sessionId);
+
     await this.repo.updateOne(
-      { _id: new ObjectId(sessionId) },
+      { _id: objectId },
       {
         $set: {
           refreshTokenHash: await bcrypt.hash(refreshToken, 10),
         },
       },
     );
+  }
+
+  private toObjectId(sessionId: string): ObjectId {
+    if (!ObjectId.isValid(sessionId)) {
+      throw new BadRequestException('Invalid session id');
+    }
+
+    return new ObjectId(sessionId);
   }
 }
