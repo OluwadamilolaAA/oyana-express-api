@@ -31,12 +31,12 @@ import {
 } from '@package/packages';
 import { UserServiceClient } from '@package/packages';
 import { firstValueFrom } from 'rxjs';
-import { AuditLogService } from './audit-log.service';
-import * as bcrypt from 'bcrypt';
-import { SessionService } from './oyana-session.service';
 import { AuthEventType } from '../entities/audit-log.entity';
-import { OTPService } from './generate-otp.service';
 import { OTPType } from '../entities/verification-otp.entity';
+import { AuditLogService } from './audit-log.service';
+import { SessionService } from './oyana-session.service';
+import { OTPService } from './generate-otp.service';
+import * as bcrypt from 'bcrypt';
 
 interface AuthTokenPayload {
   sub: string;

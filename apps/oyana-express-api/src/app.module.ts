@@ -7,6 +7,9 @@ import {
   getGrpcClientUrl,
   getProtoPath,
 } from '@package/packages';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
+import { DriverModule } from './driver/driver.module';
 
 @Module({
   imports: [
@@ -39,6 +42,9 @@ import {
         },
       },
     ]),
+    AuthModule,
+    UserModule,
+    DriverModule,
   ],
   controllers: [AppController],
   providers: [AppService],

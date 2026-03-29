@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
 import { OyanaAuthController } from './oyana-auth.controller';
-import { OyanaAuthService } from './Services/oyana-auth.service';
+import { OyanaAuthService } from './services/oyana-auth.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtModule } from '@nestjs/jwt';
-import { AuditLogService } from './Services/audit-log.service';
-import { SessionService } from './Services/oyana-session.service';
-import { OTPService } from './Services/generate-otp.service';
-import { CredentialService } from './Services/credential.service';
+import { AuditLogService } from './services/audit-log.service';
+import { SessionService } from './services/oyana-session.service';
+import { OTPService } from './services/generate-otp.service';
+import { CredentialService } from './services/credential.service';
 import { DatabaseModule } from './database.module';
 import { authProviders } from './auth.providers';
 import {

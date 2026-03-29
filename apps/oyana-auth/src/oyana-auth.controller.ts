@@ -1,5 +1,5 @@
 import { Controller } from '@nestjs/common';
-import { OyanaAuthService } from './Services/oyana-auth.service';
+import { OyanaAuthService } from './services/oyana-auth.service';
 import { Metadata } from '@grpc/grpc-js';
 import { Observable } from 'rxjs';
 import {
