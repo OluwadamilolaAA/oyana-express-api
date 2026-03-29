@@ -1,8 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { DEFAULT_PORTS, getGrpcClientUrl, getProtoPath } from '@package/packages';
+import {
+  DEFAULT_PORTS,
+  getGrpcClientUrl,
+  getProtoPath,
+} from '@package/packages';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { AuthGuard } from './guards/auth.guard';
 
 @Module({
   imports: [
@@ -19,6 +24,7 @@ import { AuthController } from './auth.controller';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, AuthGuard],
+  exports: [AuthService, AuthGuard],
 })
 export class AuthModule {}

@@ -1,0 +1,111 @@
+services:
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:8
+    restart: unless-stopped
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-root}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-secret}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Auth microservice ────────────────────────────────────────────────────────
+  oyana-auth:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: oyana-auth
+    restart: unless-stopped
+    ports:
+      - '50051:50051'
+      - '3001:3001'
+    environment:
+      NODE_ENV: production
+      MONGODB_HOST: mongo
+      MONGODB_PORT: 27017
+      AUTH_MONGODB_DB: oyana_auth
+      DB_SYNC: 'true'
+      AUTH_GRPC_BIND_URL: '0.0.0.0:50051'
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      JWT_EXPIRY: ${JWT_EXPIRY:-15m}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── User microservice ────────────────────────────────────────────────────────
+  oyana-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: oyana-user
+    restart: unless-stopped
+    ports:
+      - '50052:50052'
+      - '3002:3002'
+    environment:
+      NODE_ENV: production
+      MONGODB_HOST: mongo
+      MONGODB_PORT: 27017
+      USER_MONGODB_DB: oyana_user
+      DB_SYNC: 'true'
+      USER_GRPC_BIND_URL: '0.0.0.0:50052'
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Driver microservice ──────────────────────────────────────────────────────
+  oyana-driver:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: oyana-driver
+    restart: unless-stopped
+    ports:
+      - '50053:50053'
+      - '3003:3003'
+    environment:
+      NODE_ENV: production
+      MONGODB_HOST: mongo
+      MONGODB_PORT: 27017
+      DRIVER_MONGODB_DB: oyana_driver
+      DB_SYNC: 'true'
+      DRIVER_GRPC_BIND_URL: '0.0.0.0:50053'
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── API Gateway ──────────────────────────────────────────────────────────────
+  oyana-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        SERVICE: oyana-express-api
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: production
+      GATEWAY_HTTP_PORT: 3000
+      AUTH_GRPC_URL: 'oyana-auth:50051'
+      USER_GRPC_URL: 'oyana-user:50052'
+      DRIVER_GRPC_URL: 'oyana-driver:50053'
+    depends_on:
+      - oyana-auth
+      - oyana-user
+      - oyana-driver
+
+volumes:
+  mongo_data:

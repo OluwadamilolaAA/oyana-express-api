@@ -33,10 +33,10 @@ import { UserServiceClient } from '@package/packages';
 import { firstValueFrom } from 'rxjs';
 import { AuthEventType } from '../entities/audit-log.entity';
 import { OTPType } from '../entities/verification-otp.entity';
+import * as bcrypt from 'bcrypt';
 import { AuditLogService } from './audit-log.service';
 import { SessionService } from './oyana-session.service';
 import { OTPService } from './generate-otp.service';
-import * as bcrypt from 'bcrypt';
 
 interface AuthTokenPayload {
   sub: string;

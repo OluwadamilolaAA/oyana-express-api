@@ -2,7 +2,11 @@ export * from './packages.module';
 export * from './packages.service';
 export * from './runtime-config';
 export * from './validation';
-export { type AuthController, AuthControllerMethods } from './generated/auth';
+export {
+  type AuthController,
+  AuthControllerMethods,
+  type AuthClient,
+} from './generated/auth';
 export {
   type UserServiceController,
   UserServiceControllerMethods,
