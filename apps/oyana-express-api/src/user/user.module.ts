@@ -7,6 +7,7 @@ import {
   getGrpcClientUrl,
   getProtoPath,
 } from '@package/packages';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -21,8 +22,10 @@ import {
         },
       },
     ]),
+    AuthModule
   ],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}
