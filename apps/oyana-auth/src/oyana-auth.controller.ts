@@ -30,71 +30,79 @@ export class OyanaAuthController implements AuthController {
 
   login(
     request: LoginRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse {
+    void metadata;
     return this.oyanaAuthService.login(request);
   }
 
   register(
     request: RegisterRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<RegisterResponse>
     | Observable<RegisterResponse>
     | RegisterResponse {
+    void metadata;
     return this.oyanaAuthService.register(request);
   }
   validateToken(
     request: ValidateTokenRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<ValidateTokenResponse>
     | Observable<ValidateTokenResponse>
     | ValidateTokenResponse {
+    void metadata;
     return this.oyanaAuthService.validateToken(request);
   }
 
   refreshToken(
     request: RefreshTokenRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<RefreshTokenResponse>
     | Observable<RefreshTokenResponse>
     | RefreshTokenResponse {
+    void metadata;
     return this.oyanaAuthService.refreshToken(request);
   }
 
   logout(
     request: LogoutRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse {
+    void metadata;
     return this.oyanaAuthService.logout(request);
   }
 
   sendOtp(
     request: SendOTPRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ): Promise<SendOTPResponse> | Observable<SendOTPResponse> | SendOTPResponse {
+    void metadata;
     return this.oyanaAuthService.sendOtp(request);
   }
 
   verifyOtp(
     request: VerifyOTPRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<VerifyOTPResponse>
     | Observable<VerifyOTPResponse>
     | VerifyOTPResponse {
+    void metadata;
     return this.oyanaAuthService.verifyOtp(request);
   }
 
   getAuthContext(
     request: GetAuthContextRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<GetAuthContextResponse>
     | Observable<GetAuthContextResponse>
     | GetAuthContextResponse {
+    void metadata;
     return this.oyanaAuthService.getAuthContext(request);
   }
 }

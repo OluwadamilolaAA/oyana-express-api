@@ -20,28 +20,31 @@ export class OyanaUserController implements UserServiceController {
 
   createUser(
     request: CreateUserRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<CreateUserResponse>
     | Observable<CreateUserResponse>
     | CreateUserResponse {
+    void metadata;
     return this.oyanaUserService.createUser(request);
   }
 
   getUser(
     request: GetUserRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ): Promise<GetUserResponse> | Observable<GetUserResponse> | GetUserResponse {
+    void metadata;
     return this.oyanaUserService.getUserById(request);
   }
 
   validateUser(
     request: ValidateUserRequest,
-    _metadata?: Metadata,
+    metadata?: Metadata,
   ):
     | Promise<ValidateUserResponse>
     | Observable<ValidateUserResponse>
     | ValidateUserResponse {
+    void metadata;
     return this.oyanaUserService.validateUser(request);
   }
 }
