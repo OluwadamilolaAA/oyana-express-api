@@ -12,11 +12,7 @@ import { UserModule } from './user/user.module';
 import { DriverModule } from './driver/driver.module';
 
 @Module({
-  imports: [
-    AuthModule,
-    UserModule,
-    DriverModule,
-  ],
+  imports: [AuthModule, UserModule, DriverModule],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -1,14 +1,20 @@
-import { ObjectId } from "mongodb";
-import { Column, CreateDateColumn, Entity, Index, ObjectIdColumn } from "typeorm";
+import { ObjectId } from 'mongodb';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ObjectIdColumn,
+} from 'typeorm';
 
 @Entity()
 export class Credential {
- @ObjectIdColumn({ name: 'id' })
-    _id: ObjectId;
-  
-    get id() {
-      return this._id.toString();
-    }
+  @ObjectIdColumn({ name: 'id' })
+  _id: ObjectId;
+
+  get id() {
+    return this._id.toString();
+  }
 
   @Index()
   @Column()

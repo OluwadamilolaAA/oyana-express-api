@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint source files
+        run: npx eslint "{src,apps,libs,test}/**/*.ts"
+
+      - name: Run unit tests
+        env:
+          JWT_SECRET: test-secret
+        run: npm test -- --runInBand --ci --testPathIgnorePatterns=/test/
+
+      - name: Build all Nest applications
+        run: |
+          npx nest build oyana-express-api
+          npx nest build oyana-auth
+          npx nest build oyana-user
+          npx nest build oyana-driver
+
+  docker-build:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - oyana-express-api
+          - oyana-auth
+          - oyana-user
+          - oyana-driver
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image for ${{ matrix.service }}
+        run: docker build --build-arg SERVICE=${{ matrix.service }} --tag oyana/${{ matrix.service }}:${{ github.sha }} .

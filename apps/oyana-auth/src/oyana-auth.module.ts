@@ -9,12 +9,18 @@ import { OTPService } from './services/generate-otp.service';
 import { CredentialService } from './services/credential.service';
 import { DatabaseModule } from './database.module';
 import { authProviders } from './auth.providers';
+import { HealthController } from './health.controller';
 import {
   DEFAULT_PORTS,
-  getGrpcClientUrl,
+  getGrpcClientTransportOptions,
   getProtoPath,
   requireEnv,
 } from '@package/packages';
+
+const userServiceTransportOptions = getGrpcClientTransportOptions(
+  'USER_GRPC_URL',
+  DEFAULT_PORTS.userGrpc,
+);
 
 @Module({
   imports: [
@@ -26,7 +32,7 @@ import {
         options: {
           package: 'user',
           protoPath: getProtoPath('user.proto'),
-          url: getGrpcClientUrl('USER_GRPC_URL', DEFAULT_PORTS.userGrpc),
+          ...userServiceTransportOptions,
         },
       },
     ]),
@@ -35,7 +41,7 @@ import {
       signOptions: { expiresIn: '1d' },
     }),
   ],
-  controllers: [OyanaAuthController],
+  controllers: [OyanaAuthController, HealthController],
   providers: [
     ...authProviders,
     AuditLogService,

@@ -69,7 +69,10 @@ export class SessionService {
     );
   }
 
-  async updateRefreshToken(sessionId: string, refreshToken: string): Promise<void> {
+  async updateRefreshToken(
+    sessionId: string,
+    refreshToken: string,
+  ): Promise<void> {
     const objectId = this.toObjectId(sessionId);
 
     await this.repo.updateOne(

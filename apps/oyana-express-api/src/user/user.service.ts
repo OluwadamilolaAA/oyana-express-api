@@ -1,11 +1,22 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
-import { CreateUserResponse, UserServiceClient } from '@package/packages';
+import {
+  CreateUserResponse,
+  DEFAULT_PORTS,
+  getCloudRunGrpcMetadata,
+  getGrpcClientAudience,
+  UserServiceClient,
+} from '@package/packages';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class UserService implements OnModuleInit {
-  private userService: UserServiceClient;
+  private userService!: UserServiceClient;
+  private readonly userServiceAudience = getGrpcClientAudience(
+    'USER_GRPC_URL',
+    DEFAULT_PORTS.userGrpc,
+  );
+
   constructor(
     @Inject('USER_SERVICE') private readonly userClient: ClientGrpc,
   ) {}
@@ -15,8 +26,15 @@ export class UserService implements OnModuleInit {
       this.userClient.getService<UserServiceClient>('UserService');
   }
 
+  private async getRequestMetadata() {
+    return getCloudRunGrpcMetadata(this.userServiceAudience);
+  }
+
   async getUser(userId: string) {
-    const user = this.userService.getUser({ userId });
+    const user = this.userService.getUser(
+      { userId },
+      await this.getRequestMetadata(),
+    );
     return firstValueFrom(user);
   }
 
@@ -26,7 +44,10 @@ export class UserService implements OnModuleInit {
     name: string,
   ): Promise<CreateUserResponse> {
     return firstValueFrom(
-      this.userService.createUser({ email, password, name }),
+      this.userService.createUser(
+        { email, password, name },
+        await this.getRequestMetadata(),
+      ),
     );
   }
 }

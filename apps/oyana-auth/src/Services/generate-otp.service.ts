@@ -27,7 +27,11 @@ export class OTPService {
     return code;
   }
 
-  async verifyOTP(userId: string, code: string, type: OTPType): Promise<boolean> {
+  async verifyOTP(
+    userId: string,
+    code: string,
+    type: OTPType,
+  ): Promise<boolean> {
     const otp = await this.otpRepo.findOne({
       where: { userId, code, type },
     });

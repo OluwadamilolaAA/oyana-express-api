@@ -1,14 +1,20 @@
 import { ObjectId } from 'mongodb';
-import { Column, CreateDateColumn, Entity, Index, ObjectIdColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  Index,
+  ObjectIdColumn,
+} from 'typeorm';
 
 @Entity()
 export class Session {
   @ObjectIdColumn({ name: 'id' })
-   _id: ObjectId;
- 
-   get id() {
-     return this._id.toString();
-   }
+  _id: ObjectId;
+
+  get id() {
+    return this._id.toString();
+  }
 
   @Index()
   @Column()

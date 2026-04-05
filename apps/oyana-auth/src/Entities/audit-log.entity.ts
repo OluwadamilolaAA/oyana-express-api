@@ -30,10 +30,10 @@ export class AuthAuditLog {
   userId?: string;
 
   @Column()
-  eventType: AuthEventType; 
+  eventType: AuthEventType;
 
   @Column({ nullable: true })
-  ipAddress?: string; 
+  ipAddress?: string;
 
   @Column({ nullable: true })
   userAgent?: string;

@@ -9,8 +9,12 @@ export const databaseProviders = [
 
       const dataSource = new DataSource({
         type: 'mongodb',
-        host: mongoSettings.host,
-        port: mongoSettings.port,
+        ...(mongoSettings.uri
+          ? { url: mongoSettings.uri }
+          : {
+              host: mongoSettings.host!,
+              port: mongoSettings.port!,
+            }),
         database: mongoSettings.database,
         entities: [__dirname + '/../**/*.entity{.ts,.js}'],
         synchronize: mongoSettings.synchronize,

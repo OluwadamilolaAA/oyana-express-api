@@ -104,9 +104,7 @@ export class OyanaDriverService {
     return { driver: this.toGrpcDriver(updatedDriver) };
   }
 
-  async listDrivers(
-    request: ListDriversRequest,
-  ): Promise<ListDriversResponse> {
+  async listDrivers(request: ListDriversRequest): Promise<ListDriversResponse> {
     const drivers = await this.driverRepository.find({
       where: request.onlyAvailable ? { isAvailable: true } : {},
     });

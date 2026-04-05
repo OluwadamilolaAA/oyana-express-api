@@ -2,12 +2,17 @@ import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import {
   DEFAULT_PORTS,
-  getGrpcClientUrl,
+  getGrpcClientTransportOptions,
   getProtoPath,
 } from '@package/packages';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AuthGuard } from './guards/auth.guard';
+
+const authServiceTransportOptions = getGrpcClientTransportOptions(
+  'AUTH_GRPC_URL',
+  DEFAULT_PORTS.authGrpc,
+);
 
 @Module({
   imports: [
@@ -18,7 +23,7 @@ import { AuthGuard } from './guards/auth.guard';
         options: {
           package: 'auth',
           protoPath: getProtoPath('auth.proto'),
-          url: getGrpcClientUrl('AUTH_GRPC_URL', DEFAULT_PORTS.authGrpc),
+          ...authServiceTransportOptions,
         },
       },
     ]),

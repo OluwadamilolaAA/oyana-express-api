@@ -1,0 +1,188 @@
+name: Deploy Cloud Run Stack
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-cloud-run-stack
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_REGION: ${{ secrets.GCP_REGION }}
+      GCP_ARTIFACT_REPOSITORY: ${{ secrets.GCP_ARTIFACT_REPOSITORY }}
+      GCP_RUNTIME_SERVICE_ACCOUNT: ${{ secrets.GCP_CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      USER_SERVICE_NAME: oyana-user
+      AUTH_SERVICE_NAME: oyana-auth
+      DRIVER_SERVICE_NAME: oyana-driver
+      GATEWAY_SERVICE_NAME: oyana-express-api
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push user image
+        run: |
+          USER_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$USER_SERVICE_NAME:$IMAGE_TAG"
+          docker build --build-arg SERVICE=oyana-user --tag "$USER_IMAGE" .
+          docker push "$USER_IMAGE"
+          echo "USER_IMAGE=$USER_IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy user service
+        run: |
+          gcloud run deploy "$USER_SERVICE_NAME" \
+            --image "$USER_IMAGE" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --platform managed \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --no-allow-unauthenticated \
+            --use-http2 \
+            --update-env-vars "^|^MONGODB_URI=$MONGODB_URI|USER_MONGODB_DB=oyana_user|DB_SYNC=false" \
+            --quiet
+
+      - name: Grant runtime invoker access to user service
+        run: |
+          gcloud run services add-iam-policy-binding "$USER_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --role "roles/run.invoker" \
+            --quiet
+
+      - name: Capture user service URL
+        run: |
+          USER_URL=$(gcloud run services describe "$USER_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --format='value(status.url)')
+          echo "USER_URL=$USER_URL" >> "$GITHUB_ENV"
+
+      - name: Build and push auth image
+        run: |
+          AUTH_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$AUTH_SERVICE_NAME:$IMAGE_TAG"
+          docker build --build-arg SERVICE=oyana-auth --tag "$AUTH_IMAGE" .
+          docker push "$AUTH_IMAGE"
+          echo "AUTH_IMAGE=$AUTH_IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy auth service
+        run: |
+          gcloud run deploy "$AUTH_SERVICE_NAME" \
+            --image "$AUTH_IMAGE" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --platform managed \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --no-allow-unauthenticated \
+            --use-http2 \
+            --update-env-vars "^|^JWT_SECRET=$JWT_SECRET|MONGODB_URI=$MONGODB_URI|AUTH_MONGODB_DB=oyana_auth|USER_GRPC_URL=$USER_URL|DB_SYNC=false" \
+            --quiet
+
+      - name: Grant runtime invoker access to auth service
+        run: |
+          gcloud run services add-iam-policy-binding "$AUTH_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --role "roles/run.invoker" \
+            --quiet
+
+      - name: Capture auth service URL
+        run: |
+          AUTH_URL=$(gcloud run services describe "$AUTH_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --format='value(status.url)')
+          echo "AUTH_URL=$AUTH_URL" >> "$GITHUB_ENV"
+
+      - name: Build and push driver image
+        run: |
+          DRIVER_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$DRIVER_SERVICE_NAME:$IMAGE_TAG"
+          docker build --build-arg SERVICE=oyana-driver --tag "$DRIVER_IMAGE" .
+          docker push "$DRIVER_IMAGE"
+          echo "DRIVER_IMAGE=$DRIVER_IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy driver service
+        run: |
+          gcloud run deploy "$DRIVER_SERVICE_NAME" \
+            --image "$DRIVER_IMAGE" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --platform managed \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --no-allow-unauthenticated \
+            --use-http2 \
+            --update-env-vars "^|^MONGODB_URI=$MONGODB_URI|DRIVER_MONGODB_DB=oyana_driver|DB_SYNC=false" \
+            --quiet
+
+      - name: Grant runtime invoker access to driver service
+        run: |
+          gcloud run services add-iam-policy-binding "$DRIVER_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --role "roles/run.invoker" \
+            --quiet
+
+      - name: Capture driver service URL
+        run: |
+          DRIVER_URL=$(gcloud run services describe "$DRIVER_SERVICE_NAME" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --format='value(status.url)')
+          echo "DRIVER_URL=$DRIVER_URL" >> "$GITHUB_ENV"
+
+      - name: Build and push gateway image
+        run: |
+          GATEWAY_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$GATEWAY_SERVICE_NAME:$IMAGE_TAG"
+          docker build --build-arg SERVICE=oyana-express-api --tag "$GATEWAY_IMAGE" .
+          docker push "$GATEWAY_IMAGE"
+          echo "GATEWAY_IMAGE=$GATEWAY_IMAGE" >> "$GITHUB_ENV"
+
+      - name: Deploy gateway service
+        run: |
+          gcloud run deploy "$GATEWAY_SERVICE_NAME" \
+            --image "$GATEWAY_IMAGE" \
+            --region "$GCP_REGION" \
+            --project "$GCP_PROJECT_ID" \
+            --platform managed \
+            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
+            --allow-unauthenticated \
+            --update-env-vars "^|^AUTH_GRPC_URL=$AUTH_URL|USER_GRPC_URL=$USER_URL|DRIVER_GRPC_URL=$DRIVER_URL" \
+            --quiet
+
+      - name: Show deployed service URLs
+        run: |
+          printf '%s\n' \
+            "Gateway: $GATEWAY_SERVICE_NAME -> $(gcloud run services describe "$GATEWAY_SERVICE_NAME" --region "$GCP_REGION" --project "$GCP_PROJECT_ID" --format='value(status.url)')" \
+            "Auth: $AUTH_SERVICE_NAME -> $AUTH_URL" \
+            "User: $USER_SERVICE_NAME -> $USER_URL" \
+            "Driver: $DRIVER_SERVICE_NAME -> $DRIVER_URL"

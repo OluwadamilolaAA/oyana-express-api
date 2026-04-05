@@ -67,20 +67,14 @@ export class OyanaAuthController implements AuthController {
   logout(
     request: LogoutRequest,
     metadata?: Metadata,
-  ):
-    | Promise<LogoutResponse>
-    | Observable<LogoutResponse>
-    | LogoutResponse {
+  ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse {
     return this.oyanaAuthService.logout(request);
   }
 
   sendOtp(
     request: SendOTPRequest,
     metadata?: Metadata,
-  ):
-    | Promise<SendOTPResponse>
-    | Observable<SendOTPResponse>
-    | SendOTPResponse {
+  ): Promise<SendOTPResponse> | Observable<SendOTPResponse> | SendOTPResponse {
     return this.oyanaAuthService.sendOtp(request);
   }
 

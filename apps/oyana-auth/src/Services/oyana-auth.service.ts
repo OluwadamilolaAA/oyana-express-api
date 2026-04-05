@@ -8,8 +8,11 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
+  DEFAULT_PORTS,
   GetAuthContextRequest,
   GetAuthContextResponse,
+  getCloudRunGrpcMetadata,
+  getGrpcClientAudience,
   LoginRequest,
   LoginResponse,
   LogoutRequest,
@@ -48,7 +51,11 @@ interface AuthTokenPayload {
 
 @Injectable()
 export class OyanaAuthService implements OnModuleInit {
-  private userService: UserServiceClient;
+  private userService!: UserServiceClient;
+  private readonly userServiceAudience = getGrpcClientAudience(
+    'USER_GRPC_URL',
+    DEFAULT_PORTS.userGrpc,
+  );
 
   constructor(
     @Inject('USER_SERVICE') private readonly client: ClientGrpc,
@@ -62,15 +69,22 @@ export class OyanaAuthService implements OnModuleInit {
     this.userService = this.client.getService<UserServiceClient>('UserService');
   }
 
+  private async getUserServiceMetadata() {
+    return getCloudRunGrpcMetadata(this.userServiceAudience);
+  }
+
   async login(request: LoginRequest): Promise<LoginResponse> {
     const email = requireEmail(request.email);
     const password = requirePassword(request.password);
 
     const response = await firstValueFrom(
-      this.userService.validateUser({
-        email,
-        password,
-      }),
+      this.userService.validateUser(
+        {
+          email,
+          password,
+        },
+        await this.getUserServiceMetadata(),
+      ),
     );
 
     if (!response?.user) {
@@ -111,11 +125,14 @@ export class OyanaAuthService implements OnModuleInit {
     const name = requireNonEmptyString(request.name, 'Name');
 
     const response = await firstValueFrom(
-      this.userService.createUser({
-        email,
-        password,
-        name,
-      }),
+      this.userService.createUser(
+        {
+          email,
+          password,
+          name,
+        },
+        await this.getUserServiceMetadata(),
+      ),
     );
 
     if (!response?.user) {
@@ -145,7 +162,9 @@ export class OyanaAuthService implements OnModuleInit {
       }
 
       if (payload.sessionId) {
-        const session = await this.sessionService.validateSession(payload.sessionId);
+        const session = await this.sessionService.validateSession(
+          payload.sessionId,
+        );
 
         if (!session || session.userId !== payload.sub) {
           return this.invalidTokenResponse();
@@ -251,7 +270,9 @@ export class OyanaAuthService implements OnModuleInit {
   }
 
   private async getUserById(userId: string): Promise<User> {
-    const response = await firstValueFrom(this.userService.getUser({ userId }));
+    const response = await firstValueFrom(
+      this.userService.getUser({ userId }, await this.getUserServiceMetadata()),
+    );
 
     if (!response.user) {
       throw new UnauthorizedException('User not found');
@@ -286,7 +307,10 @@ export class OyanaAuthService implements OnModuleInit {
   }
 
   private normalizeOtpType(type: string): OTPType {
-    const normalizedType = requireNonEmptyString(type, 'OTP type').toUpperCase();
+    const normalizedType = requireNonEmptyString(
+      type,
+      'OTP type',
+    ).toUpperCase();
 
     if (
       normalizedType !== 'EMAIL_VERIFICATION' &&
