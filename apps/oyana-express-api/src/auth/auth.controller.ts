@@ -11,7 +11,6 @@ import {
   VerifyOTPResponse,
 } from '@package/packages';
 import { RegisterDto } from './dtos/register.dto';
-import { ref } from 'process';
 
 @Controller('auth')
 export class AuthController {

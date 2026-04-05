@@ -20,7 +20,7 @@ export class OyanaUserController implements UserServiceController {
 
   createUser(
     request: CreateUserRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<CreateUserResponse>
     | Observable<CreateUserResponse>
@@ -30,14 +30,14 @@ export class OyanaUserController implements UserServiceController {
 
   getUser(
     request: GetUserRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ): Promise<GetUserResponse> | Observable<GetUserResponse> | GetUserResponse {
     return this.oyanaUserService.getUserById(request);
   }
 
   validateUser(
     request: ValidateUserRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<ValidateUserResponse>
     | Observable<ValidateUserResponse>

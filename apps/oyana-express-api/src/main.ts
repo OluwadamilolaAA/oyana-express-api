@@ -9,4 +9,4 @@ async function bootstrap() {
   app.enableShutdownHooks();
   await app.listen(getHttpPort('GATEWAY_HTTP_PORT', DEFAULT_PORTS.gatewayHttp));
 }
-bootstrap();
+void bootstrap();

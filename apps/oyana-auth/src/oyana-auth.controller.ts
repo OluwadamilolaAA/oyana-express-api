@@ -30,14 +30,14 @@ export class OyanaAuthController implements AuthController {
 
   login(
     request: LoginRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse {
     return this.oyanaAuthService.login(request);
   }
 
   register(
     request: RegisterRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<RegisterResponse>
     | Observable<RegisterResponse>
@@ -46,7 +46,7 @@ export class OyanaAuthController implements AuthController {
   }
   validateToken(
     request: ValidateTokenRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<ValidateTokenResponse>
     | Observable<ValidateTokenResponse>
@@ -56,7 +56,7 @@ export class OyanaAuthController implements AuthController {
 
   refreshToken(
     request: RefreshTokenRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<RefreshTokenResponse>
     | Observable<RefreshTokenResponse>
@@ -66,21 +66,21 @@ export class OyanaAuthController implements AuthController {
 
   logout(
     request: LogoutRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse {
     return this.oyanaAuthService.logout(request);
   }
 
   sendOtp(
     request: SendOTPRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ): Promise<SendOTPResponse> | Observable<SendOTPResponse> | SendOTPResponse {
     return this.oyanaAuthService.sendOtp(request);
   }
 
   verifyOtp(
     request: VerifyOTPRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<VerifyOTPResponse>
     | Observable<VerifyOTPResponse>
@@ -90,7 +90,7 @@ export class OyanaAuthController implements AuthController {
 
   getAuthContext(
     request: GetAuthContextRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<GetAuthContextResponse>
     | Observable<GetAuthContextResponse>

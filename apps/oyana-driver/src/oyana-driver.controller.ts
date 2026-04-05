@@ -22,7 +22,7 @@ export class OyanaDriverController implements DriverServiceController {
 
   createDriver(
     request: CreateDriverRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<CreateDriverResponse>
     | Observable<CreateDriverResponse>
@@ -32,7 +32,7 @@ export class OyanaDriverController implements DriverServiceController {
 
   getDriver(
     request: GetDriverRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<GetDriverResponse>
     | Observable<GetDriverResponse>
@@ -42,7 +42,7 @@ export class OyanaDriverController implements DriverServiceController {
 
   updateDriver(
     request: UpdateDriverRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<UpdateDriverResponse>
     | Observable<UpdateDriverResponse>
@@ -52,7 +52,7 @@ export class OyanaDriverController implements DriverServiceController {
 
   listDrivers(
     request: ListDriversRequest,
-    metadata?: Metadata,
+    _metadata?: Metadata,
   ):
     | Promise<ListDriversResponse>
     | Observable<ListDriversResponse>

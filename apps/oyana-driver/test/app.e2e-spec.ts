@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
+import { App } from 'supertest/types';
 import { OyanaDriverModule } from './../src/oyana-driver.module';
 
 describe('OyanaDriverController (e2e)', () => {
-  let app: INestApplication;
+  let app: INestApplication<App>;
 
   beforeEach(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -15,7 +16,7 @@ describe('OyanaDriverController (e2e)', () => {
     await app.init();
   });
 
-  it('returns 404 for the default HTTP route', () => {
-    return request(app.getHttpServer()).get('/').expect(404);
+  it('returns 404 for the default HTTP route', async () => {
+    await request(app.getHttpServer()).get('/').expect(404);
   });
 });

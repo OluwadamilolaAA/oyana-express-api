@@ -43,4 +43,4 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(getHttpPort('USER_HTTP_PORT', DEFAULT_PORTS.userHttp));
 }
-bootstrap();
+void bootstrap();

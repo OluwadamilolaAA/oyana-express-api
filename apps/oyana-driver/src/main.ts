@@ -43,4 +43,4 @@ async function bootstrap() {
   await app.startAllMicroservices();
   await app.listen(getHttpPort('DRIVER_HTTP_PORT', DEFAULT_PORTS.driverHttp));
 }
-bootstrap();
+void bootstrap();
