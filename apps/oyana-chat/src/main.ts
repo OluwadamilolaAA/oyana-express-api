@@ -1,8 +1,10 @@
 import { NestFactory } from '@nestjs/core';
+import { DEFAULT_PORTS, getHttpPort } from '@package/packages';
 import { OyanaChatModule } from './oyana-chat.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(OyanaChatModule);
-  await app.listen(process.env.port ?? 3000);
+  app.enableShutdownHooks();
+  await app.listen(getHttpPort('CHAT_HTTP_PORT', DEFAULT_PORTS.chatHttp));
 }
-bootstrap();
+void bootstrap();

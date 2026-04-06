@@ -2,6 +2,16 @@ name: Deploy Cloud Run Stack
 
 on:
   workflow_dispatch:
+    inputs:
+      deploy_all:
+        description: Deploy every service regardless of detected changes.
+        required: false
+        default: true
+        type: boolean
+      services:
+        description: Optional comma-separated list of services to deploy. Accepts aliases like user, auth, driver, gateway.
+        required: false
+        type: string
   push:
     branches:
       - main
@@ -17,7 +27,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 120
     env:
       GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_REGION: ${{ secrets.GCP_REGION }}
@@ -28,12 +38,24 @@ jobs:
       USER_SERVICE_NAME: oyana-user
       AUTH_SERVICE_NAME: oyana-auth
       DRIVER_SERVICE_NAME: oyana-driver
+      RIDE_SERVICE_NAME: oyana-ride
+      DELIVERY_SERVICE_NAME: oyana-delivery
+      FREIGHT_SERVICE_NAME: oyana-freight
+      PRICING_SERVICE_NAME: oyana-pricing
+      PAYMENT_SERVICE_NAME: oyana-payment
+      NOTIFICATION_SERVICE_NAME: oyana-notification
+      LOCATION_SERVICE_NAME: oyana-location
+      DISPATCH_SERVICE_NAME: oyana-dispatch
+      CHAT_SERVICE_NAME: oyana-chat
+      ADMIN_SERVICE_NAME: oyana-admin
       GATEWAY_SERVICE_NAME: oyana-express-api
       IMAGE_TAG: ${{ github.sha }}
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -49,140 +71,384 @@ jobs:
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev --quiet
 
-      - name: Build and push user image
+      - name: Determine deployment targets
+        id: detect_targets
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_BEFORE_SHA: ${{ github.event.before }}
+          DISPATCH_DEPLOY_ALL: ${{ inputs.deploy_all }}
+          DISPATCH_SERVICES: ${{ inputs.services }}
         run: |
-          USER_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$USER_SERVICE_NAME:$IMAGE_TAG"
-          docker build --build-arg SERVICE=oyana-user --tag "$USER_IMAGE" .
-          docker push "$USER_IMAGE"
-          echo "USER_IMAGE=$USER_IMAGE" >> "$GITHUB_ENV"
+          set -euo pipefail
 
-      - name: Deploy user service
-        run: |
-          gcloud run deploy "$USER_SERVICE_NAME" \
-            --image "$USER_IMAGE" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --platform managed \
-            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --no-allow-unauthenticated \
-            --use-http2 \
-            --update-env-vars "^|^MONGODB_URI=$MONGODB_URI|USER_MONGODB_DB=oyana_user|DB_SYNC=false" \
-            --quiet
+          all_services=(
+            "$USER_SERVICE_NAME"
+            "$AUTH_SERVICE_NAME"
+            "$DRIVER_SERVICE_NAME"
+            "$RIDE_SERVICE_NAME"
+            "$DELIVERY_SERVICE_NAME"
+            "$FREIGHT_SERVICE_NAME"
+            "$PRICING_SERVICE_NAME"
+            "$PAYMENT_SERVICE_NAME"
+            "$NOTIFICATION_SERVICE_NAME"
+            "$LOCATION_SERVICE_NAME"
+            "$DISPATCH_SERVICE_NAME"
+            "$CHAT_SERVICE_NAME"
+            "$ADMIN_SERVICE_NAME"
+            "$GATEWAY_SERVICE_NAME"
+          )
 
-      - name: Grant runtime invoker access to user service
-        run: |
-          gcloud run services add-iam-policy-binding "$USER_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --role "roles/run.invoker" \
-            --quiet
+          declare -A deploy_map=()
+          for service in "${all_services[@]}"; do
+            deploy_map["$service"]='false'
+          done
 
-      - name: Capture user service URL
-        run: |
-          USER_URL=$(gcloud run services describe "$USER_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --format='value(status.url)')
-          echo "USER_URL=$USER_URL" >> "$GITHUB_ENV"
+          normalize_service() {
+            local raw="${1,,}"
+            raw="${raw// /}"
 
-      - name: Build and push auth image
-        run: |
-          AUTH_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$AUTH_SERVICE_NAME:$IMAGE_TAG"
-          docker build --build-arg SERVICE=oyana-auth --tag "$AUTH_IMAGE" .
-          docker push "$AUTH_IMAGE"
-          echo "AUTH_IMAGE=$AUTH_IMAGE" >> "$GITHUB_ENV"
+            case "$raw" in
+              user|oyana-user) echo "$USER_SERVICE_NAME" ;;
+              auth|oyana-auth) echo "$AUTH_SERVICE_NAME" ;;
+              driver|oyana-driver) echo "$DRIVER_SERVICE_NAME" ;;
+              ride|oyana-ride) echo "$RIDE_SERVICE_NAME" ;;
+              delivery|oyana-delivery) echo "$DELIVERY_SERVICE_NAME" ;;
+              freight|oyana-freight) echo "$FREIGHT_SERVICE_NAME" ;;
+              pricing|oyana-pricing) echo "$PRICING_SERVICE_NAME" ;;
+              payment|oyana-payment) echo "$PAYMENT_SERVICE_NAME" ;;
+              notification|oyana-notification) echo "$NOTIFICATION_SERVICE_NAME" ;;
+              location|oyana-location) echo "$LOCATION_SERVICE_NAME" ;;
+              dispatch|oyana-dispatch) echo "$DISPATCH_SERVICE_NAME" ;;
+              chat|oyana-chat) echo "$CHAT_SERVICE_NAME" ;;
+              admin|oyana-admin) echo "$ADMIN_SERVICE_NAME" ;;
+              gateway|oyana-express-api) echo "$GATEWAY_SERVICE_NAME" ;;
+              *) return 1 ;;
+            esac
+          }
 
-      - name: Deploy auth service
-        run: |
-          gcloud run deploy "$AUTH_SERVICE_NAME" \
-            --image "$AUTH_IMAGE" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --platform managed \
-            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --no-allow-unauthenticated \
-            --use-http2 \
-            --update-env-vars "^|^JWT_SECRET=$JWT_SECRET|MONGODB_URI=$MONGODB_URI|AUTH_MONGODB_DB=oyana_auth|USER_GRPC_URL=$USER_URL|DB_SYNC=false" \
-            --quiet
+          mark_service() {
+            deploy_map["$1"]='true'
+          }
 
-      - name: Grant runtime invoker access to auth service
-        run: |
-          gcloud run services add-iam-policy-binding "$AUTH_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --role "roles/run.invoker" \
-            --quiet
+          mark_many() {
+            for service in "$@"; do
+              mark_service "$service"
+            done
+          }
 
-      - name: Capture auth service URL
-        run: |
-          AUTH_URL=$(gcloud run services describe "$AUTH_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --format='value(status.url)')
-          echo "AUTH_URL=$AUTH_URL" >> "$GITHUB_ENV"
+          mark_all() {
+            mark_many "${all_services[@]}"
+          }
 
-      - name: Build and push driver image
-        run: |
-          DRIVER_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$DRIVER_SERVICE_NAME:$IMAGE_TAG"
-          docker build --build-arg SERVICE=oyana-driver --tag "$DRIVER_IMAGE" .
-          docker push "$DRIVER_IMAGE"
-          echo "DRIVER_IMAGE=$DRIVER_IMAGE" >> "$GITHUB_ENV"
+          if [[ "$EVENT_NAME" == 'workflow_dispatch' && -n "${DISPATCH_SERVICES:-}" ]]; then
+            IFS=',' read -ra requested_services <<< "$DISPATCH_SERVICES"
+            for raw_service in "${requested_services[@]}"; do
+              normalized_service="$(normalize_service "$raw_service")" || {
+                echo "::error::Unknown service '${raw_service}'."
+                exit 1
+              }
+              mark_service "$normalized_service"
+            done
+          elif [[ "$EVENT_NAME" == 'workflow_dispatch' && "${DISPATCH_DEPLOY_ALL:-false}" == 'true' ]]; then
+            mark_all
+          else
+            base_sha="${PUSH_BEFORE_SHA:-}"
+            if [[ "$EVENT_NAME" == 'workflow_dispatch' || -z "$base_sha" || "$base_sha" == '0000000000000000000000000000000000000000' ]]; then
+              base_sha="$(git rev-parse HEAD^ 2>/dev/null || true)"
+            fi
 
-      - name: Deploy driver service
-        run: |
-          gcloud run deploy "$DRIVER_SERVICE_NAME" \
-            --image "$DRIVER_IMAGE" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --platform managed \
-            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --no-allow-unauthenticated \
-            --use-http2 \
-            --update-env-vars "^|^MONGODB_URI=$MONGODB_URI|DRIVER_MONGODB_DB=oyana_driver|DB_SYNC=false" \
-            --quiet
+            if [[ -n "$base_sha" ]]; then
+              mapfile -t changed_files < <(git diff --name-only "$base_sha" "$GITHUB_SHA")
+            else
+              mapfile -t changed_files < <(git ls-files)
+            fi
 
-      - name: Grant runtime invoker access to driver service
-        run: |
-          gcloud run services add-iam-policy-binding "$DRIVER_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --role "roles/run.invoker" \
-            --quiet
+            if [[ ${#changed_files[@]} -eq 0 ]]; then
+              echo 'No changed files detected.'
+            else
+              printf 'Changed files (%s):\n' "${#changed_files[@]}"
+              printf ' - %s\n' "${changed_files[@]}"
+            fi
 
-      - name: Capture driver service URL
-        run: |
-          DRIVER_URL=$(gcloud run services describe "$DRIVER_SERVICE_NAME" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --format='value(status.url)')
-          echo "DRIVER_URL=$DRIVER_URL" >> "$GITHUB_ENV"
+            for path in "${changed_files[@]}"; do
+              case "$path" in
+                apps/oyana-user/*)
+                  mark_service "$USER_SERVICE_NAME"
+                  ;;
+                apps/oyana-auth/*)
+                  mark_service "$AUTH_SERVICE_NAME"
+                  ;;
+                apps/oyana-driver/*)
+                  mark_service "$DRIVER_SERVICE_NAME"
+                  ;;
+                apps/oyana-ride/*)
+                  mark_service "$RIDE_SERVICE_NAME"
+                  ;;
+                apps/oyana-delivery/*)
+                  mark_service "$DELIVERY_SERVICE_NAME"
+                  ;;
+                apps/oyana-freight/*)
+                  mark_service "$FREIGHT_SERVICE_NAME"
+                  ;;
+                apps/oyana-pricing/*)
+                  mark_service "$PRICING_SERVICE_NAME"
+                  ;;
+                apps/oyana-payment/*)
+                  mark_service "$PAYMENT_SERVICE_NAME"
+                  ;;
+                apps/oyana-notification/*)
+                  mark_service "$NOTIFICATION_SERVICE_NAME"
+                  ;;
+                apps/oyana-location/*)
+                  mark_service "$LOCATION_SERVICE_NAME"
+                  ;;
+                apps/oyana-dispatch/*)
+                  mark_service "$DISPATCH_SERVICE_NAME"
+                  ;;
+                apps/oyana-chat/*)
+                  mark_service "$CHAT_SERVICE_NAME"
+                  ;;
+                apps/oyana-admin/*)
+                  mark_service "$ADMIN_SERVICE_NAME"
+                  ;;
+                apps/oyana-express-api/*)
+                  mark_service "$GATEWAY_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/auth.proto|libs/packages/src/generated/auth.ts)
+                  mark_many "$AUTH_SERVICE_NAME" "$GATEWAY_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/user.proto|libs/packages/src/generated/user.ts)
+                  mark_many "$USER_SERVICE_NAME" "$AUTH_SERVICE_NAME" "$GATEWAY_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/driver.proto|libs/packages/src/generated/driver.ts)
+                  mark_many "$DRIVER_SERVICE_NAME" "$GATEWAY_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/ride.proto|libs/packages/src/generated/ride.ts)
+                  mark_service "$RIDE_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/delivery.proto|libs/packages/src/generated/delivery.ts)
+                  mark_service "$DELIVERY_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/freight.proto|libs/packages/src/generated/freight.ts)
+                  mark_service "$FREIGHT_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/pricing.proto|libs/packages/src/generated/pricing.ts)
+                  mark_service "$PRICING_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/payment.proto|libs/packages/src/generated/payment.ts)
+                  mark_service "$PAYMENT_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/notification.proto|libs/packages/src/generated/notification.ts)
+                  mark_service "$NOTIFICATION_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/location.proto|libs/packages/src/generated/location.ts)
+                  mark_service "$LOCATION_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/dispatch.proto|libs/packages/src/generated/dispatch.ts)
+                  mark_service "$DISPATCH_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/chat.proto|libs/packages/src/generated/chat.ts)
+                  mark_service "$CHAT_SERVICE_NAME"
+                  ;;
+                libs/packages/src/proto/admin.proto|libs/packages/src/generated/admin.ts)
+                  mark_service "$ADMIN_SERVICE_NAME"
+                  ;;
+                libs/packages/src/generated/google/*|libs/packages/src/runtime-config.ts|libs/packages/src/index.ts|libs/packages/src/packages.module.ts|libs/packages/src/packages.service.ts|libs/packages/src/validation.ts|scripts/*|Dockerfile|package.json|package-lock.json|nest-cli.json|tsconfig.json|tsconfig.build.json|eslint.config.mjs)
+                  mark_all
+                  ;;
+              esac
+            done
+          fi
 
-      - name: Build and push gateway image
-        run: |
-          GATEWAY_IMAGE="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$GATEWAY_SERVICE_NAME:$IMAGE_TAG"
-          docker build --build-arg SERVICE=oyana-express-api --tag "$GATEWAY_IMAGE" .
-          docker push "$GATEWAY_IMAGE"
-          echo "GATEWAY_IMAGE=$GATEWAY_IMAGE" >> "$GITHUB_ENV"
+          has_targets='false'
+          deploy_targets=()
+          for service in "${all_services[@]}"; do
+            if [[ "${deploy_map[$service]}" == 'true' ]]; then
+              has_targets='true'
+              deploy_targets+=("$service")
+            fi
 
-      - name: Deploy gateway service
-        run: |
-          gcloud run deploy "$GATEWAY_SERVICE_NAME" \
-            --image "$GATEWAY_IMAGE" \
-            --region "$GCP_REGION" \
-            --project "$GCP_PROJECT_ID" \
-            --platform managed \
-            --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT" \
-            --allow-unauthenticated \
-            --update-env-vars "^|^AUTH_GRPC_URL=$AUTH_URL|USER_GRPC_URL=$USER_URL|DRIVER_GRPC_URL=$DRIVER_URL" \
-            --quiet
+            env_key="DEPLOY_$(printf '%s' "$service" | tr '[:lower:]-' '[:upper:]_')"
+            printf '%s=%s\n' "$env_key" "${deploy_map[$service]}" >> "$GITHUB_ENV"
+          done
 
-      - name: Show deployed service URLs
+          printf 'HAS_DEPLOY_TARGETS=%s\n' "$has_targets" >> "$GITHUB_ENV"
+          printf 'has_targets=%s\n' "$has_targets" >> "$GITHUB_OUTPUT"
+
+          if [[ "$has_targets" == 'true' ]]; then
+            deploy_targets_csv="$(IFS=,; echo "${deploy_targets[*]}")"
+            printf 'DEPLOY_TARGETS=%s\n' "$deploy_targets_csv" >> "$GITHUB_ENV"
+            printf 'deploy_targets=%s\n' "$deploy_targets_csv" >> "$GITHUB_OUTPUT"
+            echo "Deploy targets: ${deploy_targets[*]}"
+          else
+            echo 'No deployable service changes detected. Skipping Cloud Run deploys.'
+          fi
+
+      - name: Deploy selected services
+        if: steps.detect_targets.outputs.has_targets == 'true'
+        shell: bash
         run: |
-          printf '%s\n' \
-            "Gateway: $GATEWAY_SERVICE_NAME -> $(gcloud run services describe "$GATEWAY_SERVICE_NAME" --region "$GCP_REGION" --project "$GCP_PROJECT_ID" --format='value(status.url)')" \
-            "Auth: $AUTH_SERVICE_NAME -> $AUTH_URL" \
-            "User: $USER_SERVICE_NAME -> $USER_URL" \
-            "Driver: $DRIVER_SERVICE_NAME -> $DRIVER_URL"
+          set -euo pipefail
+
+          deployed_services=()
+
+          build_and_push_image() {
+            local service="$1"
+            local image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$service:$IMAGE_TAG"
+
+            docker build --build-arg SERVICE="$service" --tag "$image" .
+            docker push "$image"
+
+            printf '%s' "$image"
+          }
+
+          deploy_service() {
+            local service="$1"
+            local image="$2"
+            local is_public="$3"
+            local use_http2="$4"
+            local env_vars="${5:-}"
+
+            deploy_args=(
+              run deploy "$service"
+              --image "$image"
+              --region "$GCP_REGION"
+              --project "$GCP_PROJECT_ID"
+              --platform managed
+              --service-account "$GCP_RUNTIME_SERVICE_ACCOUNT"
+              --quiet
+            )
+
+            if [[ "$is_public" == 'true' ]]; then
+              deploy_args+=(--allow-unauthenticated)
+            else
+              deploy_args+=(--no-allow-unauthenticated)
+            fi
+
+            if [[ "$use_http2" == 'true' ]]; then
+              deploy_args+=(--use-http2)
+            fi
+
+            if [[ -n "$env_vars" ]]; then
+              deploy_args+=(--update-env-vars "^|^$env_vars")
+            fi
+
+            gcloud "${deploy_args[@]}"
+
+            if [[ "$is_public" != 'true' ]]; then
+              gcloud run services add-iam-policy-binding "$service" \
+                --region "$GCP_REGION" \
+                --project "$GCP_PROJECT_ID" \
+                --member "serviceAccount:$GCP_RUNTIME_SERVICE_ACCOUNT" \
+                --role 'roles/run.invoker' \
+                --quiet
+            fi
+
+            deployed_services+=("$service")
+          }
+
+          require_service_url() {
+            local service="$1"
+            local url
+
+            url="$(gcloud run services describe "$service" \
+              --region "$GCP_REGION" \
+              --project "$GCP_PROJECT_ID" \
+              --format='value(status.url)' 2>/dev/null || true)"
+
+            if [[ -z "$url" ]]; then
+              echo "::error::Cloud Run service '$service' is not deployed yet. Deploy it first or run workflow_dispatch with deploy_all=true."
+              exit 1
+            fi
+
+            printf '%s' "$url"
+          }
+
+          maybe_deploy_http_service() {
+            local flag_name="$1"
+            local service="$2"
+            local env_vars="${3:-}"
+
+            if [[ "${!flag_name}" == 'true' ]]; then
+              image="$(build_and_push_image "$service")"
+              deploy_service "$service" "$image" 'false' 'false' "$env_vars"
+            fi
+          }
+
+          maybe_deploy_grpc_service() {
+            local flag_name="$1"
+            local service="$2"
+            local env_vars="${3:-}"
+
+            if [[ "${!flag_name}" == 'true' ]]; then
+              image="$(build_and_push_image "$service")"
+              deploy_service "$service" "$image" 'false' 'true' "$env_vars"
+            fi
+          }
+
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_USER' "$USER_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|USER_MONGODB_DB=oyana_user|DB_SYNC=false"
+
+          if [[ "$DEPLOY_OYANA_AUTH" == 'true' ]]; then
+            USER_URL="$(require_service_url "$USER_SERVICE_NAME")"
+            AUTH_IMAGE="$(build_and_push_image "$AUTH_SERVICE_NAME")"
+            deploy_service "$AUTH_SERVICE_NAME" "$AUTH_IMAGE" 'false' 'true' "JWT_SECRET=$JWT_SECRET|MONGODB_URI=$MONGODB_URI|AUTH_MONGODB_DB=oyana_auth|USER_GRPC_URL=$USER_URL|DB_SYNC=false"
+          fi
+
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_DRIVER' "$DRIVER_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|DRIVER_MONGODB_DB=oyana_driver|DB_SYNC=false"
+          maybe_deploy_http_service 'DEPLOY_OYANA_RIDE' "$RIDE_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|RIDE_MONGODB_DB=oyana_ride|DB_SYNC=false"
+          maybe_deploy_http_service 'DEPLOY_OYANA_DELIVERY' "$DELIVERY_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|DELIVERY_MONGODB_DB=oyana_delivery|DB_SYNC=false"
+          maybe_deploy_http_service 'DEPLOY_OYANA_FREIGHT' "$FREIGHT_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|FREIGHT_MONGODB_DB=oyana_freight|DB_SYNC=false"
+          maybe_deploy_http_service 'DEPLOY_OYANA_PRICING' "$PRICING_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_PAYMENT' "$PAYMENT_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_NOTIFICATION' "$NOTIFICATION_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_LOCATION' "$LOCATION_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_DISPATCH' "$DISPATCH_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_CHAT' "$CHAT_SERVICE_NAME"
+          maybe_deploy_http_service 'DEPLOY_OYANA_ADMIN' "$ADMIN_SERVICE_NAME"
+
+          if [[ "$DEPLOY_OYANA_EXPRESS_API" == 'true' ]]; then
+            AUTH_URL="$(require_service_url "$AUTH_SERVICE_NAME")"
+            USER_URL="$(require_service_url "$USER_SERVICE_NAME")"
+            DRIVER_URL="$(require_service_url "$DRIVER_SERVICE_NAME")"
+            GATEWAY_IMAGE="$(build_and_push_image "$GATEWAY_SERVICE_NAME")"
+            deploy_service "$GATEWAY_SERVICE_NAME" "$GATEWAY_IMAGE" 'true' 'false' "AUTH_GRPC_URL=$AUTH_URL|USER_GRPC_URL=$USER_URL|DRIVER_GRPC_URL=$DRIVER_URL"
+          fi
+
+          echo 'Deployed services:'
+          if [[ ${#deployed_services[@]} -eq 0 ]]; then
+            echo ' - none'
+          else
+            printf ' - %s\n' "${deployed_services[@]}"
+          fi
+
+      - name: Show current service URLs
+        if: steps.detect_targets.outputs.has_targets == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for service in \
+            "$GATEWAY_SERVICE_NAME" \
+            "$AUTH_SERVICE_NAME" \
+            "$USER_SERVICE_NAME" \
+            "$DRIVER_SERVICE_NAME" \
+            "$RIDE_SERVICE_NAME" \
+            "$DELIVERY_SERVICE_NAME" \
+            "$FREIGHT_SERVICE_NAME" \
+            "$PRICING_SERVICE_NAME" \
+            "$PAYMENT_SERVICE_NAME" \
+            "$NOTIFICATION_SERVICE_NAME" \
+            "$LOCATION_SERVICE_NAME" \
+            "$DISPATCH_SERVICE_NAME" \
+            "$CHAT_SERVICE_NAME" \
+            "$ADMIN_SERVICE_NAME"; do
+            url="$(gcloud run services describe "$service" \
+              --region "$GCP_REGION" \
+              --project "$GCP_PROJECT_ID" \
+              --format='value(status.url)' 2>/dev/null || true)"
+
+            if [[ -n "$url" ]]; then
+              printf '%s -> %s\n' "$service" "$url"
+            fi
+          done

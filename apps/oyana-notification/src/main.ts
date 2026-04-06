@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
+import { DEFAULT_PORTS, getHttpPort } from '@package/packages';
 import { OyanaNotificationModule } from './oyana-notification.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(OyanaNotificationModule);
-  await app.listen(process.env.port ?? 3000);
+  app.enableShutdownHooks();
+  await app.listen(
+    getHttpPort('NOTIFICATION_HTTP_PORT', DEFAULT_PORTS.notificationHttp),
+  );
 }
-bootstrap();
+void bootstrap();
