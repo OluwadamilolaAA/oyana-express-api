@@ -9,7 +9,7 @@ on:
         default: true
         type: boolean
       services:
-        description: Optional comma-separated list of services to deploy. Accepts aliases like user, auth, driver, gateway.
+        description: Optional comma-separated list of services to deploy. Accepts aliases like user, auth, driver, gateway, or all.
         required: false
         type: string
   push:
@@ -149,6 +149,14 @@ jobs:
           if [[ "$EVENT_NAME" == 'workflow_dispatch' && -n "${DISPATCH_SERVICES:-}" ]]; then
             IFS=',' read -ra requested_services <<< "$DISPATCH_SERVICES"
             for raw_service in "${requested_services[@]}"; do
+              normalized_raw_service="${raw_service,,}"
+              normalized_raw_service="${normalized_raw_service// /}"
+
+              if [[ "$normalized_raw_service" == 'all' || "$normalized_raw_service" == '*' ]]; then
+                mark_all
+                continue
+              fi
+
               normalized_service="$(normalize_service "$raw_service")" || {
                 echo "::error::Unknown service '${raw_service}'."
                 exit 1
