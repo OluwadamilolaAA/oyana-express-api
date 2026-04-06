@@ -10,6 +10,15 @@
   "monorepo": true,
   "root": "apps/oyana-express-api",
   "projects": {
+    "oyana-admin": {
+      "type": "application",
+      "root": "apps/oyana-admin",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-admin/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-admin/tsconfig.app.json"
+      }
+    },
     "oyana-auth": {
       "type": "application",
       "root": "apps/oyana-auth",
@@ -17,6 +26,33 @@
       "sourceRoot": "apps/oyana-auth/src",
       "compilerOptions": {
         "tsConfigPath": "apps/oyana-auth/tsconfig.app.json"
+      }
+    },
+    "oyana-chat": {
+      "type": "application",
+      "root": "apps/oyana-chat",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-chat/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-chat/tsconfig.app.json"
+      }
+    },
+    "oyana-delivery": {
+      "type": "application",
+      "root": "apps/oyana-delivery",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-delivery/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-delivery/tsconfig.app.json"
+      }
+    },
+    "oyana-dispatch": {
+      "type": "application",
+      "root": "apps/oyana-dispatch",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-dispatch/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-dispatch/tsconfig.app.json"
       }
     },
     "oyana-driver": {
@@ -35,6 +71,60 @@
       "sourceRoot": "apps/oyana-express-api/src",
       "compilerOptions": {
         "tsConfigPath": "apps/oyana-express-api/tsconfig.app.json"
+      }
+    },
+    "oyana-freight": {
+      "type": "application",
+      "root": "apps/oyana-freight",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-freight/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-freight/tsconfig.app.json"
+      }
+    },
+    "oyana-location": {
+      "type": "application",
+      "root": "apps/oyana-location",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-location/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-location/tsconfig.app.json"
+      }
+    },
+    "oyana-notification": {
+      "type": "application",
+      "root": "apps/oyana-notification",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-notification/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-notification/tsconfig.app.json"
+      }
+    },
+    "oyana-payment": {
+      "type": "application",
+      "root": "apps/oyana-payment",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-payment/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-payment/tsconfig.app.json"
+      }
+    },
+    "oyana-pricing": {
+      "type": "application",
+      "root": "apps/oyana-pricing",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-pricing/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-pricing/tsconfig.app.json"
+      }
+    },
+    "oyana-ride": {
+      "type": "application",
+      "root": "apps/oyana-ride",
+      "entryFile": "main",
+      "sourceRoot": "apps/oyana-ride/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/oyana-ride/tsconfig.app.json"
       }
     },
     "oyana-user": {

@@ -9,6 +9,16 @@ export const DEFAULT_PORTS = {
   authHttp: 3001,
   userHttp: 3002,
   driverHttp: 3003,
+  rideHttp: 3004,
+  deliveryHttp: 3005,
+  freightHttp: 3006,
+  pricingHttp: 3007,
+  paymentHttp: 3008,
+  notificationHttp: 3009,
+  locationHttp: 3010,
+  dispatchHttp: 3011,
+  chatHttp: 3012,
+  adminHttp: 3013,
 } as const;
 
 export interface MongoConnectionSettings {

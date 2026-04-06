@@ -21,6 +21,18 @@ export class DriverProfile {
   @Column()
   licenseNumber!: string;
 
+  @Column({ default: 'PENDING' })
+  onboardingStatus!: 'PENDING' | 'IN_REVIEW' | 'COMPLETED';
+
+  @Column({ default: 'PENDING' })
+  approvalStatus!: 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
+
+  @Column({ default: 'OFFLINE' })
+  currentStatus!: 'OFFLINE' | 'AVAILABLE' | 'ON_TRIP' | 'SUSPENDED';
+
+  @Column({ nullable: true })
+  activeVehicleAssignmentId?: string;
+
   @Column({ default: true })
   isAvailable!: boolean;
 }
