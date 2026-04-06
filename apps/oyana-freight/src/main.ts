@@ -1,10 +1,17 @@
-import { NestFactory } from '@nestjs/core';
 import { OyanaFreightModule } from './oyana-freight.module';
-import { DEFAULT_PORTS, getHttpPort } from '@package/packages';
+import { DEFAULT_PORTS, bootstrapHybridService } from '@package/packages';
 
 async function bootstrap() {
-  const app = await NestFactory.create(OyanaFreightModule);
-  app.enableShutdownHooks();
-  await app.listen(getHttpPort('FREIGHT_HTTP_PORT', DEFAULT_PORTS.freightHttp));
+  await bootstrapHybridService({
+    module: OyanaFreightModule,
+    servicePrefix: 'FREIGHT',
+    serviceName: 'oyana-freight',
+    grpcPackage: 'freight',
+    protoFileName: 'freight.proto',
+    grpcBindEnvName: 'FREIGHT_GRPC_BIND_URL',
+    grpcDefaultPort: DEFAULT_PORTS.freightGrpc,
+    httpEnvName: 'FREIGHT_HTTP_PORT',
+    httpDefaultPort: DEFAULT_PORTS.freightHttp,
+  });
 }
 void bootstrap();

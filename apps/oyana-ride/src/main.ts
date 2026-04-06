@@ -1,10 +1,17 @@
-import { NestFactory } from '@nestjs/core';
 import { OyanaRideModule } from './oyana-ride.module';
-import { DEFAULT_PORTS, getHttpPort } from '@package/packages';
+import { DEFAULT_PORTS, bootstrapHybridService } from '@package/packages';
 
 async function bootstrap() {
-  const app = await NestFactory.create(OyanaRideModule);
-  app.enableShutdownHooks();
-  await app.listen(getHttpPort('RIDE_HTTP_PORT', DEFAULT_PORTS.rideHttp));
+  await bootstrapHybridService({
+    module: OyanaRideModule,
+    servicePrefix: 'RIDE',
+    serviceName: 'oyana-ride',
+    grpcPackage: 'ride',
+    protoFileName: 'ride.proto',
+    grpcBindEnvName: 'RIDE_GRPC_BIND_URL',
+    grpcDefaultPort: DEFAULT_PORTS.rideGrpc,
+    httpEnvName: 'RIDE_HTTP_PORT',
+    httpDefaultPort: DEFAULT_PORTS.rideHttp,
+  });
 }
 void bootstrap();

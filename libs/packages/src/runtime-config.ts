@@ -1,4 +1,5 @@
 import { credentials, Metadata, type ChannelCredentials } from '@grpc/grpc-js';
+import type { SASLOptions } from 'kafkajs';
 import { join } from 'path';
 
 export const DEFAULT_PORTS = {
@@ -8,6 +9,13 @@ export const DEFAULT_PORTS = {
   rideGrpc: 50054,
   deliveryGrpc: 50055,
   freightGrpc: 50056,
+  pricingGrpc: 50057,
+  paymentGrpc: 50058,
+  notificationGrpc: 50059,
+  locationGrpc: 50060,
+  dispatchGrpc: 50061,
+  chatGrpc: 50062,
+  adminGrpc: 50063,
   gatewayHttp: 3000,
   authHttp: 3001,
   userHttp: 3002,
@@ -35,6 +43,20 @@ export interface MongoConnectionSettings {
 export interface GrpcClientTransportOptions {
   url: string;
   credentials?: ChannelCredentials;
+}
+
+type KafkaSaslMechanism = 'plain' | 'scram-sha-256' | 'scram-sha-512';
+
+export interface KafkaTransportOptions {
+  client: {
+    clientId: string;
+    brokers: string[];
+    ssl?: boolean;
+    sasl?: SASLOptions;
+  };
+  consumer: {
+    groupId: string;
+  };
 }
 
 interface ParsedGrpcEndpoint {
@@ -253,6 +275,98 @@ export function getHttpPort(envName: string, defaultPort: number): number {
   }
 
   return parsedValue;
+}
+
+function getKafkaEnv(
+  servicePrefix: string,
+  variableName: string,
+): string | undefined {
+  return readEnv(`${servicePrefix}_${variableName}`) ?? readEnv(variableName);
+}
+
+function parseKafkaBrokers(rawValue: string): string[] {
+  const brokers = rawValue
+    .split(',')
+    .map((broker) => broker.trim())
+    .filter((broker) => broker.length > 0);
+
+  if (brokers.length === 0) {
+    throw new Error('KAFKA_BROKERS must contain at least one broker');
+  }
+
+  return brokers;
+}
+
+export function hasKafkaTransport(servicePrefix: string): boolean {
+  return Boolean(getKafkaEnv(servicePrefix, 'KAFKA_BROKERS'));
+}
+
+export function getKafkaTransportOptions(
+  servicePrefix: string,
+  defaultClientId: string,
+): KafkaTransportOptions {
+  const rawBrokers = getKafkaEnv(servicePrefix, 'KAFKA_BROKERS');
+
+  if (!rawBrokers) {
+    throw new Error(
+      `${servicePrefix}_KAFKA_BROKERS or KAFKA_BROKERS is required to enable Kafka transport`,
+    );
+  }
+
+  const username = getKafkaEnv(servicePrefix, 'KAFKA_SASL_USERNAME');
+  const password = getKafkaEnv(servicePrefix, 'KAFKA_SASL_PASSWORD');
+  const ssl = getKafkaEnv(servicePrefix, 'KAFKA_SSL')
+    ? getBooleanEnv(
+        `${servicePrefix}_KAFKA_SSL`,
+        getBooleanEnv('KAFKA_SSL', false),
+      )
+    : Boolean(username && password);
+
+  const transportOptions: KafkaTransportOptions = {
+    client: {
+      clientId:
+        getKafkaEnv(servicePrefix, 'KAFKA_CLIENT_ID') ?? defaultClientId,
+      brokers: parseKafkaBrokers(rawBrokers),
+      ssl,
+    },
+    consumer: {
+      groupId:
+        getKafkaEnv(servicePrefix, 'KAFKA_GROUP_ID') ??
+        `${defaultClientId}-consumer`,
+    },
+  };
+
+  if (username && password) {
+    const mechanism = (getKafkaEnv(servicePrefix, 'KAFKA_SASL_MECHANISM') ??
+      'plain') as KafkaSaslMechanism;
+
+    switch (mechanism) {
+      case 'scram-sha-256':
+        transportOptions.client.sasl = {
+          mechanism: 'scram-sha-256',
+          username,
+          password,
+        };
+        break;
+      case 'scram-sha-512':
+        transportOptions.client.sasl = {
+          mechanism: 'scram-sha-512',
+          username,
+          password,
+        };
+        break;
+      case 'plain':
+      default:
+        transportOptions.client.sasl = {
+          mechanism: 'plain',
+          username,
+          password,
+        };
+        break;
+    }
+  }
+
+  return transportOptions;
 }
 
 export async function getCloudRunGrpcMetadata(

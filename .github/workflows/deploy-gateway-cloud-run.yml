@@ -35,6 +35,11 @@ jobs:
       GCP_RUNTIME_SERVICE_ACCOUNT: ${{ secrets.GCP_CLOUD_RUN_RUNTIME_SERVICE_ACCOUNT }}
       JWT_SECRET: ${{ secrets.JWT_SECRET }}
       MONGODB_URI: ${{ secrets.MONGODB_URI }}
+      KAFKA_BROKERS: ${{ secrets.KAFKA_BROKERS }}
+      KAFKA_SSL: ${{ secrets.KAFKA_SSL }}
+      KAFKA_SASL_USERNAME: ${{ secrets.KAFKA_SASL_USERNAME }}
+      KAFKA_SASL_PASSWORD: ${{ secrets.KAFKA_SASL_PASSWORD }}
+      KAFKA_SASL_MECHANISM: ${{ secrets.KAFKA_SASL_MECHANISM }}
       USER_SERVICE_NAME: oyana-user
       AUTH_SERVICE_NAME: oyana-auth
       DRIVER_SERVICE_NAME: oyana-driver
@@ -309,6 +314,7 @@ jobs:
             local is_public="$3"
             local use_http2="$4"
             local env_vars="${5:-}"
+            local kafka_env_vars="KAFKA_BROKERS=$KAFKA_BROKERS|KAFKA_SSL=$KAFKA_SSL|KAFKA_SASL_USERNAME=$KAFKA_SASL_USERNAME|KAFKA_SASL_PASSWORD=$KAFKA_SASL_PASSWORD|KAFKA_SASL_MECHANISM=$KAFKA_SASL_MECHANISM"
 
             deploy_args=(
               run deploy "$service"
@@ -328,6 +334,12 @@ jobs:
 
             if [[ "$use_http2" == 'true' ]]; then
               deploy_args+=(--use-http2)
+            fi
+
+            if [[ -n "$env_vars" ]]; then
+              env_vars="${env_vars}|${kafka_env_vars}"
+            else
+              env_vars="$kafka_env_vars"
             fi
 
             if [[ -n "$env_vars" ]]; then
@@ -396,16 +408,16 @@ jobs:
           fi
 
           maybe_deploy_grpc_service 'DEPLOY_OYANA_DRIVER' "$DRIVER_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|DRIVER_MONGODB_DB=oyana_driver|DB_SYNC=false"
-          maybe_deploy_http_service 'DEPLOY_OYANA_RIDE' "$RIDE_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|RIDE_MONGODB_DB=oyana_ride|DB_SYNC=false"
-          maybe_deploy_http_service 'DEPLOY_OYANA_DELIVERY' "$DELIVERY_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|DELIVERY_MONGODB_DB=oyana_delivery|DB_SYNC=false"
-          maybe_deploy_http_service 'DEPLOY_OYANA_FREIGHT' "$FREIGHT_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|FREIGHT_MONGODB_DB=oyana_freight|DB_SYNC=false"
-          maybe_deploy_http_service 'DEPLOY_OYANA_PRICING' "$PRICING_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_PAYMENT' "$PAYMENT_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_NOTIFICATION' "$NOTIFICATION_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_LOCATION' "$LOCATION_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_DISPATCH' "$DISPATCH_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_CHAT' "$CHAT_SERVICE_NAME"
-          maybe_deploy_http_service 'DEPLOY_OYANA_ADMIN' "$ADMIN_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_RIDE' "$RIDE_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|RIDE_MONGODB_DB=oyana_ride|DB_SYNC=false"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_DELIVERY' "$DELIVERY_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|DELIVERY_MONGODB_DB=oyana_delivery|DB_SYNC=false"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_FREIGHT' "$FREIGHT_SERVICE_NAME" "MONGODB_URI=$MONGODB_URI|FREIGHT_MONGODB_DB=oyana_freight|DB_SYNC=false"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_PRICING' "$PRICING_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_PAYMENT' "$PAYMENT_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_NOTIFICATION' "$NOTIFICATION_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_LOCATION' "$LOCATION_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_DISPATCH' "$DISPATCH_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_CHAT' "$CHAT_SERVICE_NAME"
+          maybe_deploy_grpc_service 'DEPLOY_OYANA_ADMIN' "$ADMIN_SERVICE_NAME"
 
           if [[ "$DEPLOY_OYANA_EXPRESS_API" == 'true' ]]; then
             AUTH_URL="$(require_service_url "$AUTH_SERVICE_NAME")"

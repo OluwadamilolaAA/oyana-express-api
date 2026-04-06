@@ -1,5 +1,6 @@
 export * from './packages.module';
 export * from './packages.service';
+export * from './hybrid-service-bootstrap';
 export * from './runtime-config';
 export * from './validation';
 export {
