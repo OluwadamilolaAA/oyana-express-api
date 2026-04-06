@@ -1,0 +1,110 @@
+syntax = "proto3";
+
+package dispatch;
+
+import "google/protobuf/timestamp.proto";
+
+service DispatchService {
+  rpc MatchRide (MatchRideRequest) returns (MatchRideResponse);
+  rpc MatchDelivery (MatchDeliveryRequest) returns (MatchDeliveryResponse);
+  rpc MatchFreight (MatchFreightRequest) returns (MatchFreightResponse);
+  rpc AcceptDispatch (AcceptDispatchRequest) returns (AcceptDispatchResponse);
+  rpc RejectDispatch (RejectDispatchRequest) returns (RejectDispatchResponse);
+  rpc ReassignDispatch (ReassignDispatchRequest) returns (ReassignDispatchResponse);
+}
+
+message DispatchCandidate {
+  string driverId = 1;
+  double score = 2;
+  double distanceMeters = 3;
+  int32 etaSeconds = 4;
+  optional string vehicleType = 5;
+  optional string reason = 6;
+}
+
+message DispatchAssignment {
+  string id = 1;
+  string serviceType = 2;
+  string requestId = 3;
+  string driverId = 4;
+  string status = 5;
+  int32 attempt = 6;
+  google.protobuf.Timestamp assignedAt = 7;
+  google.protobuf.Timestamp acceptedAt = 8;
+  google.protobuf.Timestamp expiredAt = 9;
+}
+
+message DispatchRule {
+  string id = 1;
+  string serviceType = 2;
+  string ruleName = 3;
+  int32 priority = 4;
+  int32 timeoutSeconds = 5;
+  int32 maxAttempts = 6;
+  bool isActive = 7;
+}
+
+message MatchRideRequest {
+  string rideId = 1;
+  double pickupLatitude = 2;
+  double pickupLongitude = 3;
+  optional string vehicleType = 4;
+}
+
+message MatchRideResponse {
+  DispatchAssignment assignment = 1;
+  repeated DispatchCandidate candidates = 2;
+}
+
+message MatchDeliveryRequest {
+  string deliveryId = 1;
+  double pickupLatitude = 2;
+  double pickupLongitude = 3;
+  optional string vehicleType = 4;
+}
+
+message MatchDeliveryResponse {
+  DispatchAssignment assignment = 1;
+  repeated DispatchCandidate candidates = 2;
+}
+
+message MatchFreightRequest {
+  string freightBookingId = 1;
+  double pickupLatitude = 2;
+  double pickupLongitude = 3;
+  optional string vehicleType = 4;
+}
+
+message MatchFreightResponse {
+  DispatchAssignment assignment = 1;
+  repeated DispatchCandidate candidates = 2;
+}
+
+message AcceptDispatchRequest {
+  string assignmentId = 1;
+  string driverId = 2;
+}
+
+message AcceptDispatchResponse {
+  DispatchAssignment assignment = 1;
+}
+
+message RejectDispatchRequest {
+  string assignmentId = 1;
+  string driverId = 2;
+  optional string reason = 3;
+}
+
+message RejectDispatchResponse {
+  DispatchAssignment assignment = 1;
+}
+
+message ReassignDispatchRequest {
+  string assignmentId = 1;
+  optional string reason = 2;
+}
+
+message ReassignDispatchResponse {
+  DispatchAssignment assignment = 1;
+  repeated DispatchCandidate candidates = 2;
+}

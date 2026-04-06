@@ -2,11 +2,26 @@ syntax = "proto3";
 
 package driver;
 
+import "google/protobuf/timestamp.proto";
+
 service DriverService {
   rpc CreateDriver (CreateDriverRequest) returns (CreateDriverResponse);
   rpc GetDriver (GetDriverRequest) returns (GetDriverResponse);
   rpc UpdateDriver (UpdateDriverRequest) returns (UpdateDriverResponse);
   rpc ListDrivers (ListDriversRequest) returns (ListDriversResponse);
+  rpc GetDriverProfile (GetDriverProfileRequest) returns (GetDriverProfileResponse);
+  rpc UpdateDriverProfile (UpdateDriverProfileRequest) returns (UpdateDriverProfileResponse);
+  rpc ReviewDriver (ReviewDriverRequest) returns (ReviewDriverResponse);
+  rpc GetDriverStatus (GetDriverStatusRequest) returns (GetDriverStatusResponse);
+  rpc UpsertDriverStatus (UpsertDriverStatusRequest) returns (UpsertDriverStatusResponse);
+  rpc ListDriverDocuments (ListDriverDocumentsRequest) returns (ListDriverDocumentsResponse);
+  rpc UpsertDriverDocument (UpsertDriverDocumentRequest) returns (UpsertDriverDocumentResponse);
+  rpc ListVehicleTypes (ListVehicleTypesRequest) returns (ListVehicleTypesResponse);
+  rpc UpsertVehicleType (UpsertVehicleTypeRequest) returns (UpsertVehicleTypeResponse);
+  rpc ListVehicles (ListVehiclesRequest) returns (ListVehiclesResponse);
+  rpc UpsertVehicle (UpsertVehicleRequest) returns (UpsertVehicleResponse);
+  rpc AssignVehicle (AssignVehicleRequest) returns (AssignVehicleResponse);
+  rpc UnassignVehicle (UnassignVehicleRequest) returns (UnassignVehicleResponse);
 }
 
 // Requests & Responses
@@ -54,4 +69,185 @@ message Driver {
   string vehicleType = 2;
   string licenseNumber = 3;
   bool isAvailable = 4;
+}
+
+message DriverProfile {
+  string id = 1;
+  string userId = 2;
+  string vehicleType = 3;
+  string licenseNumber = 4;
+  string onboardingStatus = 5;
+  string approvalStatus = 6;
+  string currentStatus = 7;
+  optional string activeVehicleAssignmentId = 8;
+  bool isAvailable = 9;
+}
+
+message DriverDocument {
+  string id = 1;
+  string driverId = 2;
+  string documentType = 3;
+  optional string documentNumber = 4;
+  string fileUrl = 5;
+  string verificationStatus = 6;
+  google.protobuf.Timestamp expiresAt = 7;
+  google.protobuf.Timestamp uploadedAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message DriverStatus {
+  string id = 1;
+  string driverId = 2;
+  string status = 3;
+  bool isAvailable = 4;
+  optional string reason = 5;
+  google.protobuf.Timestamp changedAt = 6;
+}
+
+message VehicleType {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  string category = 4;
+  int32 maxPassengers = 5;
+  optional double maxLoadKg = 6;
+  bool isActive = 7;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message Vehicle {
+  string id = 1;
+  string plateNumber = 2;
+  optional string vin = 3;
+  string make = 4;
+  string model = 5;
+  optional string color = 6;
+  optional int32 year = 7;
+  string vehicleTypeId = 8;
+  optional string ownerDriverId = 9;
+  string status = 10;
+  google.protobuf.Timestamp createdAt = 11;
+  google.protobuf.Timestamp updatedAt = 12;
+}
+
+message DriverVehicleAssignment {
+  string id = 1;
+  string driverId = 2;
+  string vehicleId = 3;
+  google.protobuf.Timestamp assignedAt = 4;
+  google.protobuf.Timestamp unassignedAt = 5;
+  bool isActive = 6;
+}
+
+message GetDriverProfileRequest {
+  optional string driverId = 1;
+  optional string userId = 2;
+}
+
+message GetDriverProfileResponse {
+  DriverProfile profile = 1;
+}
+
+message UpdateDriverProfileRequest {
+  DriverProfile profile = 1;
+}
+
+message UpdateDriverProfileResponse {
+  DriverProfile profile = 1;
+}
+
+message ReviewDriverRequest {
+  string driverId = 1;
+  string approvalStatus = 2;
+  optional string reason = 3;
+  string reviewedBy = 4;
+}
+
+message ReviewDriverResponse {
+  DriverProfile profile = 1;
+}
+
+message GetDriverStatusRequest {
+  string driverId = 1;
+}
+
+message GetDriverStatusResponse {
+  DriverStatus driverStatus = 1;
+}
+
+message UpsertDriverStatusRequest {
+  DriverStatus driverStatus = 1;
+}
+
+message UpsertDriverStatusResponse {
+  DriverStatus driverStatus = 1;
+}
+
+message ListDriverDocumentsRequest {
+  string driverId = 1;
+}
+
+message ListDriverDocumentsResponse {
+  repeated DriverDocument documents = 1;
+}
+
+message UpsertDriverDocumentRequest {
+  DriverDocument document = 1;
+}
+
+message UpsertDriverDocumentResponse {
+  DriverDocument document = 1;
+}
+
+message ListVehicleTypesRequest {
+  bool includeInactive = 1;
+}
+
+message ListVehicleTypesResponse {
+  repeated VehicleType vehicleTypes = 1;
+}
+
+message UpsertVehicleTypeRequest {
+  VehicleType vehicleType = 1;
+}
+
+message UpsertVehicleTypeResponse {
+  VehicleType vehicleType = 1;
+}
+
+message ListVehiclesRequest {
+  optional string ownerDriverId = 1;
+  optional string vehicleTypeId = 2;
+  bool includeInactive = 3;
+}
+
+message ListVehiclesResponse {
+  repeated Vehicle vehicles = 1;
+}
+
+message UpsertVehicleRequest {
+  Vehicle vehicle = 1;
+}
+
+message UpsertVehicleResponse {
+  Vehicle vehicle = 1;
+}
+
+message AssignVehicleRequest {
+  string driverId = 1;
+  string vehicleId = 2;
+}
+
+message AssignVehicleResponse {
+  DriverVehicleAssignment assignment = 1;
+}
+
+message UnassignVehicleRequest {
+  string assignmentId = 1;
+  string driverId = 2;
+}
+
+message UnassignVehicleResponse {
+  DriverVehicleAssignment assignment = 1;
 }

@@ -1,0 +1,166 @@
+syntax = "proto3";
+
+package delivery;
+
+import "google/protobuf/timestamp.proto";
+
+service DeliveryService {
+  rpc GetOverview (GetDeliveryOverviewRequest) returns (GetDeliveryOverviewResponse);
+  rpc CreateDelivery (CreateDeliveryRequest) returns (CreateDeliveryResponse);
+  rpc GetDelivery (GetDeliveryRequest) returns (GetDeliveryResponse);
+  rpc ListDeliveries (ListDeliveriesRequest) returns (ListDeliveriesResponse);
+  rpc UpdateDeliveryStatus (UpdateDeliveryStatusRequest) returns (UpdateDeliveryStatusResponse);
+  rpc AssignDelivery (AssignDeliveryRequest) returns (AssignDeliveryResponse);
+  rpc CaptureProofOfDelivery (CaptureProofOfDeliveryRequest) returns (CaptureProofOfDeliveryResponse);
+}
+
+message GetDeliveryOverviewRequest {}
+
+message GetDeliveryOverviewResponse {
+  string service = 1;
+  string domain = 2;
+  repeated string collections = 3;
+  repeated string capabilities = 4;
+}
+
+message CreateDeliveryRequest {
+  string requesterId = 1;
+  string senderName = 2;
+  string senderPhone = 3;
+  string pickupAddress = 4;
+  string dropoffAddress = 5;
+  double pickupLatitude = 6;
+  double pickupLongitude = 7;
+  double dropoffLatitude = 8;
+  double dropoffLongitude = 9;
+  optional string serviceLevel = 10;
+  google.protobuf.Timestamp scheduledFor = 11;
+  repeated DeliveryItem items = 12;
+  Receiver receiver = 13;
+}
+
+message CreateDeliveryResponse {
+  Delivery delivery = 1;
+  repeated DeliveryItem items = 2;
+  Receiver receiver = 3;
+}
+
+message GetDeliveryRequest {
+  string deliveryId = 1;
+}
+
+message GetDeliveryResponse {
+  Delivery delivery = 1;
+  repeated DeliveryItem items = 2;
+  Receiver receiver = 3;
+  ProofOfDelivery proofOfDelivery = 4;
+}
+
+message ListDeliveriesRequest {
+  optional string requesterId = 1;
+  optional string driverId = 2;
+  optional string status = 3;
+}
+
+message ListDeliveriesResponse {
+  repeated Delivery deliveries = 1;
+}
+
+message Delivery {
+  string id = 1;
+  string requesterId = 2;
+  string senderName = 3;
+  string senderPhone = 4;
+  string pickupAddress = 5;
+  string dropoffAddress = 6;
+  double pickupLatitude = 7;
+  double pickupLongitude = 8;
+  double dropoffLatitude = 9;
+  double dropoffLongitude = 10;
+  string status = 11;
+  optional string serviceLevel = 12;
+  google.protobuf.Timestamp scheduledFor = 13;
+  google.protobuf.Timestamp completedAt = 14;
+  google.protobuf.Timestamp createdAt = 15;
+  google.protobuf.Timestamp updatedAt = 16;
+}
+
+message DeliveryItem {
+  string id = 1;
+  string deliveryId = 2;
+  string name = 3;
+  int32 quantity = 4;
+  optional double weightKg = 5;
+  optional double declaredValue = 6;
+  optional string specialInstructions = 7;
+}
+
+message Receiver {
+  string id = 1;
+  string deliveryId = 2;
+  string name = 3;
+  string phone = 4;
+  optional string email = 5;
+  optional string verificationCode = 6;
+  optional string relationship = 7;
+}
+
+message DeliveryStatusHistory {
+  string id = 1;
+  string deliveryId = 2;
+  string status = 3;
+  optional string note = 4;
+  optional string actorId = 5;
+  google.protobuf.Timestamp changedAt = 6;
+}
+
+message DeliveryAssignment {
+  string id = 1;
+  string deliveryId = 2;
+  string driverId = 3;
+  string status = 4;
+  google.protobuf.Timestamp assignedAt = 5;
+  google.protobuf.Timestamp acceptedAt = 6;
+  google.protobuf.Timestamp pickedUpAt = 7;
+  google.protobuf.Timestamp deliveredAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message ProofOfDelivery {
+  string id = 1;
+  string deliveryId = 2;
+  string recipientName = 3;
+  optional string signatureUrl = 4;
+  optional string photoUrl = 5;
+  optional string notes = 6;
+  google.protobuf.Timestamp capturedAt = 7;
+}
+
+message UpdateDeliveryStatusRequest {
+  string deliveryId = 1;
+  string status = 2;
+  optional string note = 3;
+  optional string actorId = 4;
+}
+
+message UpdateDeliveryStatusResponse {
+  DeliveryStatusHistory statusHistory = 1;
+}
+
+message AssignDeliveryRequest {
+  string deliveryId = 1;
+  string driverId = 2;
+  optional string status = 3;
+}
+
+message AssignDeliveryResponse {
+  DeliveryAssignment assignment = 1;
+}
+
+message CaptureProofOfDeliveryRequest {
+  ProofOfDelivery proofOfDelivery = 1;
+}
+
+message CaptureProofOfDeliveryResponse {
+  ProofOfDelivery proofOfDelivery = 1;
+}

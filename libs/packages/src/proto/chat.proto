@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package chat;
+
+import "google/protobuf/timestamp.proto";
+
+service ChatService {
+  rpc CreateConversation (CreateConversationRequest) returns (CreateConversationResponse);
+  rpc ListConversations (ListConversationsRequest) returns (ListConversationsResponse);
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+  rpc ListMessages (ListMessagesRequest) returns (ListMessagesResponse);
+  rpc MarkMessageRead (MarkMessageReadRequest) returns (MarkMessageReadResponse);
+}
+
+message Conversation {
+  string id = 1;
+  string serviceType = 2;
+  string entityId = 3;
+  string status = 4;
+  google.protobuf.Timestamp createdAt = 5;
+  google.protobuf.Timestamp updatedAt = 6;
+}
+
+message ConversationParticipant {
+  string id = 1;
+  string conversationId = 2;
+  string userId = 3;
+  string role = 4;
+  google.protobuf.Timestamp joinedAt = 5;
+}
+
+message ChatMessage {
+  string id = 1;
+  string conversationId = 2;
+  string senderId = 3;
+  string messageType = 4;
+  string body = 5;
+  optional string attachmentUrl = 6;
+  google.protobuf.Timestamp sentAt = 7;
+}
+
+message MessageRead {
+  string id = 1;
+  string messageId = 2;
+  string userId = 3;
+  google.protobuf.Timestamp readAt = 4;
+}
+
+message CreateConversationRequest {
+  string serviceType = 1;
+  string entityId = 2;
+  repeated ConversationParticipant participants = 3;
+}
+
+message CreateConversationResponse {
+  Conversation conversation = 1;
+  repeated ConversationParticipant participants = 2;
+}
+
+message ListConversationsRequest {
+  string userId = 1;
+}
+
+message ListConversationsResponse {
+  repeated Conversation conversations = 1;
+}
+
+message SendMessageRequest {
+  string conversationId = 1;
+  string senderId = 2;
+  string messageType = 3;
+  string body = 4;
+  optional string attachmentUrl = 5;
+}
+
+message SendMessageResponse {
+  ChatMessage message = 1;
+}
+
+message ListMessagesRequest {
+  string conversationId = 1;
+}
+
+message ListMessagesResponse {
+  repeated ChatMessage messages = 1;
+}
+
+message MarkMessageReadRequest {
+  string messageId = 1;
+  string userId = 2;
+}
+
+message MarkMessageReadResponse {
+  MessageRead messageRead = 1;
+}

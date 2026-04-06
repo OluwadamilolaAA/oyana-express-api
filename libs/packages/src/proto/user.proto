@@ -2,10 +2,23 @@ syntax = "proto3";
 
 package user;
 
+import "google/protobuf/timestamp.proto";
+
 service UserService {
   rpc GetUser (GetUserRequest) returns (GetUserResponse);
   rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
   rpc ValidateUser (ValidateUserRequest) returns (ValidateUserResponse);
+  rpc UpdateUserProfile (UpdateUserProfileRequest) returns (UpdateUserProfileResponse);
+  rpc ListUserAddresses (ListUserAddressesRequest) returns (ListUserAddressesResponse);
+  rpc UpsertUserAddress (UpsertUserAddressRequest) returns (UpsertUserAddressResponse);
+  rpc DeleteUserAddress (DeleteUserAddressRequest) returns (DeleteUserAddressResponse);
+  rpc GetUserPreference (GetUserPreferenceRequest) returns (GetUserPreferenceResponse);
+  rpc UpsertUserPreference (UpsertUserPreferenceRequest) returns (UpsertUserPreferenceResponse);
+  rpc ListEmergencyContacts (ListEmergencyContactsRequest) returns (ListEmergencyContactsResponse);
+  rpc UpsertEmergencyContact (UpsertEmergencyContactRequest) returns (UpsertEmergencyContactResponse);
+  rpc DeleteEmergencyContact (DeleteEmergencyContactRequest) returns (DeleteEmergencyContactResponse);
+  rpc GetKycProfile (GetKycProfileRequest) returns (GetKycProfileResponse);
+  rpc UpsertKycProfile (UpsertKycProfileRequest) returns (UpsertKycProfileResponse);
 }
 
 message GetUserRequest {
@@ -18,6 +31,62 @@ message User {
   string name = 3;
   string phone = 4;
   string role = 5;
+}
+
+message UserAddress {
+  string id = 1;
+  string userId = 2;
+  string label = 3;
+  string line1 = 4;
+  optional string line2 = 5;
+  string city = 6;
+  optional string state = 7;
+  string country = 8;
+  optional string postalCode = 9;
+  optional double latitude = 10;
+  optional double longitude = 11;
+  bool isDefault = 12;
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
+}
+
+message UserPreference {
+  string id = 1;
+  string userId = 2;
+  string language = 3;
+  string currency = 4;
+  repeated string notificationChannels = 5;
+  repeated string preferredVehicleTypes = 6;
+  bool marketingOptIn = 7;
+  bool darkMode = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+}
+
+message EmergencyContact {
+  string id = 1;
+  string userId = 2;
+  string name = 3;
+  string phone = 4;
+  string relationship = 5;
+  bool isPrimary = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}
+
+message KycProfile {
+  string id = 1;
+  string userId = 2;
+  string fullName = 3;
+  optional string dateOfBirth = 4;
+  string idType = 5;
+  string idNumber = 6;
+  string verificationStatus = 7;
+  optional string selfieUrl = 8;
+  optional string documentFrontUrl = 9;
+  optional string documentBackUrl = 10;
+  google.protobuf.Timestamp verifiedAt = 11;
+  google.protobuf.Timestamp createdAt = 12;
+  google.protobuf.Timestamp updatedAt = 13;
 }
 
 message GetUserResponse {
@@ -41,5 +110,98 @@ message ValidateUserRequest {
 
 message ValidateUserResponse {
   User user = 1;
+}
+
+message UpdateUserProfileRequest {
+  string userId = 1;
+  optional string name = 2;
+  optional string phone = 3;
+  optional string role = 4;
+}
+
+message UpdateUserProfileResponse {
+  User user = 1;
+}
+
+message ListUserAddressesRequest {
+  string userId = 1;
+}
+
+message ListUserAddressesResponse {
+  repeated UserAddress addresses = 1;
+}
+
+message UpsertUserAddressRequest {
+  UserAddress address = 1;
+}
+
+message UpsertUserAddressResponse {
+  UserAddress address = 1;
+}
+
+message DeleteUserAddressRequest {
+  string addressId = 1;
+  string userId = 2;
+}
+
+message DeleteUserAddressResponse {
+  bool deleted = 1;
+}
+
+message GetUserPreferenceRequest {
+  string userId = 1;
+}
+
+message GetUserPreferenceResponse {
+  UserPreference preference = 1;
+}
+
+message UpsertUserPreferenceRequest {
+  UserPreference preference = 1;
+}
+
+message UpsertUserPreferenceResponse {
+  UserPreference preference = 1;
+}
+
+message ListEmergencyContactsRequest {
+  string userId = 1;
+}
+
+message ListEmergencyContactsResponse {
+  repeated EmergencyContact contacts = 1;
+}
+
+message UpsertEmergencyContactRequest {
+  EmergencyContact contact = 1;
+}
+
+message UpsertEmergencyContactResponse {
+  EmergencyContact contact = 1;
+}
+
+message DeleteEmergencyContactRequest {
+  string contactId = 1;
+  string userId = 2;
+}
+
+message DeleteEmergencyContactResponse {
+  bool deleted = 1;
+}
+
+message GetKycProfileRequest {
+  string userId = 1;
+}
+
+message GetKycProfileResponse {
+  KycProfile profile = 1;
+}
+
+message UpsertKycProfileRequest {
+  KycProfile profile = 1;
+}
+
+message UpsertKycProfileResponse {
+  KycProfile profile = 1;
 }
 

@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package admin;
+
+import "google/protobuf/timestamp.proto";
+
+service AdminService {
+  rpc CreateFraudFlag (CreateFraudFlagRequest) returns (CreateFraudFlagResponse);
+  rpc ReviewDriver (ReviewDriverRequest) returns (ReviewDriverResponse);
+  rpc ResolveBooking (ResolveBookingRequest) returns (ResolveBookingResponse);
+  rpc GetOperationalMetrics (GetOperationalMetricsRequest) returns (GetOperationalMetricsResponse);
+  rpc RecordAdminAction (RecordAdminActionRequest) returns (RecordAdminActionResponse);
+}
+
+message FraudFlag {
+  string id = 1;
+  string serviceType = 2;
+  string entityId = 3;
+  string subjectUserId = 4;
+  string flagType = 5;
+  string severity = 6;
+  string reason = 7;
+  string status = 8;
+  google.protobuf.Timestamp createdAt = 9;
+  google.protobuf.Timestamp resolvedAt = 10;
+}
+
+message DriverApprovalDecision {
+  string id = 1;
+  string driverId = 2;
+  string approvalStatus = 3;
+  optional string reason = 4;
+  string reviewedBy = 5;
+  google.protobuf.Timestamp reviewedAt = 6;
+}
+
+message BookingResolution {
+  string id = 1;
+  string serviceType = 2;
+  string entityId = 3;
+  string resolutionType = 4;
+  string notes = 5;
+  string resolvedBy = 6;
+  google.protobuf.Timestamp resolvedAt = 7;
+}
+
+message OperationalMetric {
+  string name = 1;
+  double value = 2;
+  string unit = 3;
+  google.protobuf.Timestamp windowStart = 4;
+  google.protobuf.Timestamp windowEnd = 5;
+}
+
+message AdminAction {
+  string id = 1;
+  string actionType = 2;
+  string serviceType = 3;
+  string entityId = 4;
+  string actorId = 5;
+  optional string payloadJson = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}
+
+message CreateFraudFlagRequest {
+  FraudFlag fraudFlag = 1;
+}
+
+message CreateFraudFlagResponse {
+  FraudFlag fraudFlag = 1;
+}
+
+message ReviewDriverRequest {
+  DriverApprovalDecision decision = 1;
+}
+
+message ReviewDriverResponse {
+  DriverApprovalDecision decision = 1;
+}
+
+message ResolveBookingRequest {
+  BookingResolution resolution = 1;
+}
+
+message ResolveBookingResponse {
+  BookingResolution resolution = 1;
+}
+
+message GetOperationalMetricsRequest {
+  optional string serviceType = 1;
+  optional string metricGroup = 2;
+  google.protobuf.Timestamp windowStart = 3;
+  google.protobuf.Timestamp windowEnd = 4;
+}
+
+message GetOperationalMetricsResponse {
+  repeated OperationalMetric metrics = 1;
+}
+
+message RecordAdminActionRequest {
+  AdminAction action = 1;
+}
+
+message RecordAdminActionResponse {
+  AdminAction action = 1;
+}
