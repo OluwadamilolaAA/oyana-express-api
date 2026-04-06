@@ -19,7 +19,7 @@ export enum AuthEventType {
 @Entity()
 export class AuthAuditLog {
   @ObjectIdColumn()
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
@@ -30,7 +30,7 @@ export class AuthAuditLog {
   userId?: string;
 
   @Column()
-  eventType: AuthEventType;
+  eventType!: AuthEventType;
 
   @Column({ nullable: true })
   ipAddress?: string;
@@ -42,5 +42,5 @@ export class AuthAuditLog {
   metadata?: Record<string, any>;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

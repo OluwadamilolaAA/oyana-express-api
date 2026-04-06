@@ -15,36 +15,36 @@ export type AuthStatus =
 @Entity()
 export class AuthIdentity {
   @ObjectIdColumn({ name: 'id' })
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
   }
 
   @Column()
-  userId: string;
+  userId!: string;
 
   @Column()
-  email: string;
+  email!: string;
 
   @Column()
-  status: AuthStatus;
+  status!: AuthStatus;
 
   @Column({ default: 0 })
-  failedLoginAttempts: number;
+  failedLoginAttempts!: number;
 
   @Column({ nullable: true })
-  lockedUntil: Date;
+  lockedUntil!: Date;
 
   @Column({ nullable: true })
-  lastLoginAt: Date;
+  lastLoginAt!: Date;
 
   @Column({ nullable: true })
-  passwordChangedAt: Date;
+  passwordChangedAt!: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

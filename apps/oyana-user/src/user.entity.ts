@@ -12,31 +12,31 @@ import { ObjectId } from 'mongodb';
 @Entity()
 export class User implements UserInterface {
   @ObjectIdColumn({ name: 'id' })
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
   }
 
   @Column({ length: 120 })
-  name: string;
+  name!: string;
 
   @Index({ unique: true })
   @Column()
-  email: string;
+  email!: string;
 
   @Column()
-  password: string;
+  password!: string;
 
   @Column({ default: '' })
-  phone: string;
+  phone!: string;
 
   @Column({ default: 'customer' })
-  role: 'customer' | 'admin' | 'driver';
+  role!: 'customer' | 'admin' | 'driver';
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

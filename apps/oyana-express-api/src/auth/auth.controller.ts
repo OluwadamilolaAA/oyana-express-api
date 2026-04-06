@@ -1,4 +1,5 @@
 import { Body, Controller, Post } from '@nestjs/common';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dtos/login.dto';
 import {
@@ -11,56 +12,75 @@ import {
   VerifyOTPResponse,
 } from '@package/packages';
 import { RegisterDto } from './dtos/register.dto';
+import {
+  LoginResponseDto,
+  LogoutDto,
+  MessageResponseDto,
+  RefreshTokenDto,
+  RefreshTokenResponseDto,
+  RegisterResponseDto,
+  SendOtpDto,
+  ValidateTokenDto,
+  ValidateTokenResponseDto,
+  VerifyOtpDto,
+  VerifyOtpResponseDto,
+} from '../swagger/swagger.dto';
 
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  // Add your controller methods here
   @Post('login')
+  @ApiOperation({ summary: 'Authenticate a user' })
+  @ApiOkResponse({ type: LoginResponseDto })
   async login(@Body() dto: LoginDto): Promise<LoginResponse> {
     return this.authService.login(dto);
   }
 
   @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiOkResponse({ type: RegisterResponseDto })
   async register(@Body() dto: RegisterDto): Promise<RegisterResponse> {
     return this.authService.register(dto);
   }
 
   @Post('validate-token')
+  @ApiOperation({ summary: 'Validate an access token' })
+  @ApiOkResponse({ type: ValidateTokenResponseDto })
   async validateToken(
-    @Body('token') token: string,
+    @Body() dto: ValidateTokenDto,
   ): Promise<ValidateTokenResponse> {
-    return this.authService.validateToken(token);
+    return this.authService.validateToken(dto.token);
   }
 
   @Post('refresh-token')
+  @ApiOperation({ summary: 'Refresh an access token' })
+  @ApiOkResponse({ type: RefreshTokenResponseDto })
   async refreshToken(
-    @Body('refreshToken') refreshToken: string,
-    @Body('sessionId') sessionId: string,
+    @Body() dto: RefreshTokenDto,
   ): Promise<RefreshTokenResponse> {
-    return this.authService.refreshToken(refreshToken, sessionId);
+    return this.authService.refreshToken(dto.refreshToken, dto.sessionId);
   }
 
   @Post('logout')
-  async logout(@Body('sessionId') sessionId: string): Promise<LogoutResponse> {
-    return this.authService.logout(sessionId);
+  @ApiOperation({ summary: 'Log out a session' })
+  @ApiOkResponse({ type: MessageResponseDto })
+  async logout(@Body() dto: LogoutDto): Promise<LogoutResponse> {
+    return this.authService.logout(dto.sessionId);
   }
 
   @Post('send-otp')
-  async sendOtp(
-    @Body('userId') userId: string,
-    @Body('type') type: string,
-  ): Promise<SendOTPResponse> {
-    return this.authService.sendOtp(userId, type);
+  @ApiOperation({ summary: 'Send an OTP to a user' })
+  @ApiOkResponse({ type: MessageResponseDto })
+  async sendOtp(@Body() dto: SendOtpDto): Promise<SendOTPResponse> {
+    return this.authService.sendOtp(dto.userId, dto.type);
   }
 
   @Post('verify-otp')
-  async verifyOtp(
-    @Body('userId') userId: string,
-    @Body('code') code: string,
-    @Body('type') type: string,
-  ): Promise<VerifyOTPResponse> {
-    return this.authService.verifyOtp(userId, code, type);
+  @ApiOperation({ summary: 'Verify an OTP code' })
+  @ApiOkResponse({ type: VerifyOtpResponseDto })
+  async verifyOtp(@Body() dto: VerifyOtpDto): Promise<VerifyOTPResponse> {
+    return this.authService.verifyOtp(dto.userId, dto.code, dto.type);
   }
 }

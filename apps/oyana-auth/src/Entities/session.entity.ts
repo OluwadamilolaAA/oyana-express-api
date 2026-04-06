@@ -10,7 +10,7 @@ import {
 @Entity()
 export class Session {
   @ObjectIdColumn({ name: 'id' })
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
@@ -18,14 +18,14 @@ export class Session {
 
   @Index()
   @Column()
-  userId: string;
+  userId!: string;
 
   @Index()
   @Column()
-  authIdentityId: string;
+  authIdentityId!: string;
 
   @Column()
-  refreshTokenHash: string;
+  refreshTokenHash!: string;
 
   @Column({ nullable: true })
   userAgent?: string;
@@ -34,7 +34,7 @@ export class Session {
   ipAddress?: string;
 
   @Column()
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Column({ nullable: true })
   lastActivityAt?: Date;
@@ -46,8 +46,8 @@ export class Session {
   revocationReason?: string;
 
   @Column({ default: true })
-  isActive: boolean;
+  isActive!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

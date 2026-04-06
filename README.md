@@ -87,6 +87,7 @@ npm run lint
 - `DB_SYNC` defaults to `false` and should remain disabled outside local development.
 - `MONGODB_URI` is supported globally, with per-service overrides via `AUTH_MONGODB_URI`, `USER_MONGODB_URI`, and `DRIVER_MONGODB_URI`.
 - If a service-specific HTTP port is not set, each app falls back to Render's `PORT` environment variable.
+- The gateway exposes Swagger UI at `/docs` and the OpenAPI JSON document at `/docs/openapi.json`.
 - The gateway currently exposes overview and health endpoints only.
 - See `PROJECT_PROFESSIONALIZATION_REVIEW.md` for the audit and remaining improvement plan.
 

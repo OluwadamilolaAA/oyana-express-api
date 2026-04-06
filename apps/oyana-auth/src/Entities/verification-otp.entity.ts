@@ -15,7 +15,7 @@ export type OTPType =
 @Entity()
 export class OtpVerification {
   @ObjectIdColumn()
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
@@ -23,22 +23,22 @@ export class OtpVerification {
 
   @Index()
   @Column()
-  userId: string;
+  userId!: string;
 
   @Index()
   @Column()
-  code: string;
+  code!: string;
 
   @Index()
   @Column()
-  type: OTPType;
+  type!: OTPType;
 
   @Column()
-  expiresAt: Date;
+  expiresAt!: Date;
 
   @Column({ nullable: true })
   usedAt?: Date;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }

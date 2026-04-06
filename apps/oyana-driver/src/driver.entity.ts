@@ -4,7 +4,7 @@ import { Column, Entity, Index, ObjectIdColumn } from 'typeorm';
 @Entity()
 export class DriverProfile {
   @ObjectIdColumn()
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id(): string {
     return this._id.toString();
@@ -12,15 +12,15 @@ export class DriverProfile {
 
   @Index({ unique: true })
   @Column()
-  userId: string;
+  userId!: string;
 
   @Column()
-  vehicleType: string;
+  vehicleType!: string;
 
   @Index({ unique: true })
   @Column()
-  licenseNumber: string;
+  licenseNumber!: string;
 
   @Column({ default: true })
-  isAvailable: boolean;
+  isAvailable!: boolean;
 }

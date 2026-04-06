@@ -10,7 +10,7 @@ import {
 @Entity()
 export class Credential {
   @ObjectIdColumn({ name: 'id' })
-  _id: ObjectId;
+  _id!: ObjectId;
 
   get id() {
     return this._id.toString();
@@ -18,14 +18,14 @@ export class Credential {
 
   @Index()
   @Column()
-  userId: string;
+  userId!: string;
 
   @Index()
   @Column()
-  authIdentityId: string;
+  authIdentityId!: string;
 
   @Column()
-  type: 'PASSWORD' | 'GOOGLE' | 'GITHUB';
+  type!: 'PASSWORD' | 'GOOGLE' | 'GITHUB';
 
   @Column({ nullable: true })
   passwordHash?: string;
@@ -34,8 +34,8 @@ export class Credential {
   providerId?: string;
 
   @Column({ default: false })
-  isPrimary: boolean;
+  isPrimary!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 }
