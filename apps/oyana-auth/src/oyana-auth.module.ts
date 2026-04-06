@@ -8,7 +8,7 @@ import { SessionService } from './Services/oyana-session.service';
 import { OTPService } from './Services/generate-otp.service';
 import { CredentialService } from './Services/credential.service';
 import { DatabaseModule } from './database.module';
-import { authProviders } from './auth.providers';
+import { authProviders } from './provider/auth.providers';
 import { HealthController } from './health.controller';
 import {
   DEFAULT_PORTS,

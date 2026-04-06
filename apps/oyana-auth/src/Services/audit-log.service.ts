@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
-import { AUTH_AUDIT_LOG_REPOSITORY } from '../auth.providers';
+import { AUTH_AUDIT_LOG_REPOSITORY } from '../provider/auth.providers';
 import { AuthAuditLog } from '../Entities/audit-log.entity';
 
 @Injectable()

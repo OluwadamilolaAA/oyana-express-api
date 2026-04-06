@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import { ObjectId } from 'mongodb';
 import { User } from '@package/packages';
-import { AUTH_SESSION_REPOSITORY } from '../auth.providers';
+import { AUTH_SESSION_REPOSITORY } from '../provider/auth.providers';
 import { Session } from '../Entities/session.entity';
 
 export interface SessionMetadata {

@@ -18,7 +18,7 @@ import {
   UpdateDriverRequest,
   UpdateDriverResponse,
 } from '@package/packages';
-import { DRIVER_REPOSITORY } from './driver.providers';
+import { DRIVER_REPOSITORY } from './provider/driver.providers';
 import { DriverProfileEntity } from './entity/driver.entity';
 
 @Injectable()

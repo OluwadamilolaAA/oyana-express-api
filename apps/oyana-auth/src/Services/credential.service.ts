@@ -1,7 +1,7 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { AUTH_CREDENTIAL_REPOSITORY } from '../auth.providers';
+import { AUTH_CREDENTIAL_REPOSITORY } from '../provider/auth.providers';
 import { Credential } from '../Entities/credentials.entity';
 
 @Injectable()

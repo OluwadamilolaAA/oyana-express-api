@@ -2,7 +2,7 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { randomInt } from 'crypto';
 import dayjs from 'dayjs';
 import { MongoRepository } from 'typeorm';
-import { AUTH_OTP_REPOSITORY } from '../auth.providers';
+import { AUTH_OTP_REPOSITORY } from '../provider/auth.providers';
 import { OTPType, OtpVerification } from '../Entities/verification-otp.entity';
 
 @Injectable()
