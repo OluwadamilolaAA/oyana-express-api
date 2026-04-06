@@ -302,8 +302,8 @@ jobs:
             local service="$1"
             local image="$GCP_REGION-docker.pkg.dev/$GCP_PROJECT_ID/$GCP_ARTIFACT_REPOSITORY/$service:$IMAGE_TAG"
 
-            docker build --build-arg SERVICE="$service" --tag "$image" .
-            docker push "$image"
+            docker build --build-arg SERVICE="$service" --tag "$image" . >&2
+            docker push "$image" >&2
 
             printf '%s' "$image"
           }
