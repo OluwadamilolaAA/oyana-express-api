@@ -8,6 +8,7 @@ import {
   getGrpcClientTransportOptions,
   getProtoPath,
 } from '@package/packages';
+import { AuthModule } from '../auth/auth.module';
 
 const driverServiceTransportOptions = getGrpcClientTransportOptions(
   'DRIVER_GRPC_URL',
@@ -27,6 +28,7 @@ const driverServiceTransportOptions = getGrpcClientTransportOptions(
         },
       },
     ]),
+    AuthModule,
   ],
   controllers: [DriverController],
   providers: [DriverService],
