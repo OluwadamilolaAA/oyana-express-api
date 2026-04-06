@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package payment;
+
+import "google/protobuf/timestamp.proto";
+
+service PaymentService {
+  rpc GetWallet (GetWalletRequest) returns (GetWalletResponse);
+  rpc CreateWallet (CreateWalletRequest) returns (CreateWalletResponse);
+  rpc ListWalletTransactions (ListWalletTransactionsRequest) returns (ListWalletTransactionsResponse);
+  rpc CreditWallet (CreditWalletRequest) returns (CreditWalletResponse);
+  rpc DebitWallet (DebitWalletRequest) returns (DebitWalletResponse);
+  rpc RecordPayment (RecordPaymentRequest) returns (RecordPaymentResponse);
+  rpc RecordRefund (RecordRefundRequest) returns (RecordRefundResponse);
+  rpc SubmitPayoutRequest (SubmitPayoutRequestCommand) returns (SubmitPayoutRequestResponse);
+  rpc ListPayoutRequests (ListPayoutRequestsRequest) returns (ListPayoutRequestsResponse);
+}
+
+message Wallet {
+  string id = 1;
+  string userId = 2;
+  double availableBalance = 3;
+  double ledgerBalance = 4;
+  string currency = 5;
+  string status = 6;
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+}
+
+message WalletTransaction {
+  string id = 1;
+  string walletId = 2;
+  string userId = 3;
+  string type = 4;
+  double amount = 5;
+  string currency = 6;
+  string status = 7;
+  string reference = 8;
+  optional string description = 9;
+  double balanceAfter = 10;
+  google.protobuf.Timestamp createdAt = 11;
+}
+
+message Payment {
+  string id = 1;
+  string userId = 2;
+  string serviceType = 3;
+  string serviceReferenceId = 4;
+  double amount = 5;
+  string currency = 6;
+  string method = 7;
+  string status = 8;
+  optional string externalReference = 9;
+  optional string metadataJson = 10;
+  google.protobuf.Timestamp createdAt = 11;
+  google.protobuf.Timestamp updatedAt = 12;
+}
+
+message Refund {
+  string id = 1;
+  string paymentId = 2;
+  string userId = 3;
+  double amount = 4;
+  string currency = 5;
+  string reason = 6;
+  string status = 7;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message PayoutRequest {
+  string id = 1;
+  string userId = 2;
+  double amount = 3;
+  string currency = 4;
+  string destinationType = 5;
+  string destinationReference = 6;
+  string status = 7;
+  google.protobuf.Timestamp requestedAt = 8;
+  google.protobuf.Timestamp reviewedAt = 9;
+  google.protobuf.Timestamp processedAt = 10;
+}
+
+message PayoutTransaction {
+  string id = 1;
+  string payoutRequestId = 2;
+  double amount = 3;
+  string currency = 4;
+  optional string processorReference = 5;
+  string status = 6;
+  google.protobuf.Timestamp processedAt = 7;
+}
+
+message GetWalletRequest {
+  string userId = 1;
+}
+
+message GetWalletResponse {
+  Wallet wallet = 1;
+}
+
+message CreateWalletRequest {
+  string userId = 1;
+  string currency = 2;
+}
+
+message CreateWalletResponse {
+  Wallet wallet = 1;
+}
+
+message ListWalletTransactionsRequest {
+  string walletId = 1;
+}
+
+message ListWalletTransactionsResponse {
+  repeated WalletTransaction transactions = 1;
+}
+
+message CreditWalletRequest {
+  string walletId = 1;
+  double amount = 2;
+  string currency = 3;
+  string reference = 4;
+  optional string description = 5;
+}
+
+message CreditWalletResponse {
+  WalletTransaction transaction = 1;
+  Wallet wallet = 2;
+}
+
+message DebitWalletRequest {
+  string walletId = 1;
+  double amount = 2;
+  string currency = 3;
+  string reference = 4;
+  optional string description = 5;
+}
+
+message DebitWalletResponse {
+  WalletTransaction transaction = 1;
+  Wallet wallet = 2;
+}
+
+message RecordPaymentRequest {
+  Payment payment = 1;
+}
+
+message RecordPaymentResponse {
+  Payment payment = 1;
+}
+
+message RecordRefundRequest {
+  Refund refund = 1;
+}
+
+message RecordRefundResponse {
+  Refund refund = 1;
+}
+
+message SubmitPayoutRequestCommand {
+  string userId = 1;
+  double amount = 2;
+  string currency = 3;
+  string destinationType = 4;
+  string destinationReference = 5;
+}
+
+message SubmitPayoutRequestResponse {
+  PayoutRequest payoutRequest = 1;
+}
+
+message ListPayoutRequestsRequest {
+  string userId = 1;
+}
+
+message ListPayoutRequestsResponse {
+  repeated PayoutRequest payoutRequests = 1;
+  repeated PayoutTransaction payoutTransactions = 2;
+}

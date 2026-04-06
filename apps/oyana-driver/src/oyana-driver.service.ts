@@ -19,13 +19,13 @@ import {
   UpdateDriverResponse,
 } from '@package/packages';
 import { DRIVER_REPOSITORY } from './driver.providers';
-import { DriverProfile } from './driver.entity';
+import { DriverProfileEntity } from './entity/driver.entity';
 
 @Injectable()
 export class OyanaDriverService {
   constructor(
     @Inject(DRIVER_REPOSITORY)
-    private readonly driverRepository: MongoRepository<DriverProfile>,
+    private readonly driverRepository: MongoRepository<DriverProfileEntity>,
   ) {}
 
   async createDriver(
@@ -114,7 +114,7 @@ export class OyanaDriverService {
     };
   }
 
-  private toGrpcDriver(driver: DriverProfile): Driver {
+  private toGrpcDriver(driver: DriverProfileEntity): Driver {
     return {
       userId: driver.userId,
       vehicleType: driver.vehicleType,

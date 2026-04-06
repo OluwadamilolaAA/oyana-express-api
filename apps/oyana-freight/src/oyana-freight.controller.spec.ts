@@ -4,19 +4,37 @@ import { OyanaFreightService } from './oyana-freight.service';
 
 describe('OyanaFreightController', () => {
   let oyanaFreightController: OyanaFreightController;
+  let oyanaFreightService: { getOverview: jest.Mock };
 
   beforeEach(async () => {
+    oyanaFreightService = {
+      getOverview: jest.fn(),
+    };
+
     const app: TestingModule = await Test.createTestingModule({
       controllers: [OyanaFreightController],
-      providers: [OyanaFreightService],
+      providers: [
+        {
+          provide: OyanaFreightService,
+          useValue: oyanaFreightService,
+        },
+      ],
     }).compile();
 
-    oyanaFreightController = app.get<OyanaFreightController>(OyanaFreightController);
+    oyanaFreightController = app.get<OyanaFreightController>(
+      OyanaFreightController,
+    );
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(oyanaFreightController.getHello()).toBe('Hello World!');
-    });
+  it('should be defined', () => {
+    expect(oyanaFreightController).toBeDefined();
+  });
+
+  it('delegates overview requests to the freight service', () => {
+    const response = { service: 'oyana-freight', domain: 'freight-logistics' };
+    oyanaFreightService.getOverview.mockReturnValue(response);
+
+    expect(oyanaFreightController.getOverview()).toEqual(response);
+    expect(oyanaFreightService.getOverview).toHaveBeenCalled();
   });
 });

@@ -6,7 +6,7 @@ export class OyanaFreightController {
   constructor(private readonly oyanaFreightService: OyanaFreightService) {}
 
   @Get()
-  getHello(): string {
-    return this.oyanaFreightService.getHello();
+  getOverview() {
+    return this.oyanaFreightService.getOverview();
   }
 }

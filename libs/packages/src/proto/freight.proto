@@ -1,0 +1,180 @@
+syntax = "proto3";
+
+package freight;
+
+import "google/protobuf/timestamp.proto";
+
+service FreightService {
+  rpc GetOverview (GetFreightOverviewRequest) returns (GetFreightOverviewResponse);
+  rpc CreateFreightOrder (CreateFreightOrderRequest) returns (CreateFreightOrderResponse);
+  rpc GetFreightRequest (GetFreightRequestRequest) returns (GetFreightRequestResponse);
+  rpc ListFreightRequests (ListFreightRequestsRequest) returns (ListFreightRequestsResponse);
+  rpc CreateFreightQuote (CreateFreightQuoteRequest) returns (CreateFreightQuoteResponse);
+  rpc BookFreight (BookFreightRequest) returns (BookFreightResponse);
+  rpc AssignFreight (AssignFreightRequest) returns (AssignFreightResponse);
+  rpc UpdateFreightStatus (UpdateFreightStatusRequest) returns (UpdateFreightStatusResponse);
+}
+
+message GetFreightOverviewRequest {}
+
+message GetFreightOverviewResponse {
+  string service = 1;
+  string domain = 2;
+  repeated string collections = 3;
+  repeated string capabilities = 4;
+}
+
+message CreateFreightOrderRequest {
+  string requesterId = 1;
+  string originAddress = 2;
+  string destinationAddress = 3;
+  string cargoType = 4;
+  double totalWeightKg = 5;
+  optional double totalVolumeM3 = 6;
+  google.protobuf.Timestamp scheduledPickupAt = 7;
+  optional string notes = 8;
+  repeated FreightItem items = 9;
+}
+
+message CreateFreightOrderResponse {
+  FreightRequest freightRequest = 1;
+  repeated FreightItem items = 2;
+}
+
+message GetFreightRequestRequest {
+  string freightRequestId = 1;
+}
+
+message GetFreightRequestResponse {
+  FreightRequest freightRequest = 1;
+  repeated FreightItem items = 2;
+  repeated FreightQuote quotes = 3;
+  FreightBooking booking = 4;
+}
+
+message ListFreightRequestsRequest {
+  optional string requesterId = 1;
+  optional string status = 2;
+}
+
+message ListFreightRequestsResponse {
+  repeated FreightRequest freightRequests = 1;
+}
+
+message FreightRequest {
+  string id = 1;
+  string requesterId = 2;
+  string originAddress = 3;
+  string destinationAddress = 4;
+  string cargoType = 5;
+  double totalWeightKg = 6;
+  optional double totalVolumeM3 = 7;
+  google.protobuf.Timestamp scheduledPickupAt = 8;
+  string status = 9;
+  optional string notes = 10;
+  google.protobuf.Timestamp createdAt = 11;
+  google.protobuf.Timestamp updatedAt = 12;
+}
+
+message FreightItem {
+  string id = 1;
+  string freightRequestId = 2;
+  string description = 3;
+  int32 quantity = 4;
+  double weightKg = 5;
+  optional double lengthCm = 6;
+  optional double widthCm = 7;
+  optional double heightCm = 8;
+  bool isFragile = 9;
+}
+
+message FreightQuote {
+  string id = 1;
+  string freightRequestId = 2;
+  optional string providerId = 3;
+  double quotedAmount = 4;
+  string currency = 5;
+  google.protobuf.Timestamp validUntil = 6;
+  string status = 7;
+  google.protobuf.Timestamp createdAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message FreightBooking {
+  string id = 1;
+  string freightRequestId = 2;
+  string quoteId = 3;
+  string bookingReference = 4;
+  string assignedVehicleType = 5;
+  optional string driverId = 6;
+  string status = 7;
+  google.protobuf.Timestamp bookedAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message FreightAssignment {
+  string id = 1;
+  string freightBookingId = 2;
+  string driverId = 3;
+  string vehicleId = 4;
+  string status = 5;
+  google.protobuf.Timestamp assignedAt = 6;
+  google.protobuf.Timestamp dispatchAt = 7;
+  google.protobuf.Timestamp deliveredAt = 8;
+  google.protobuf.Timestamp updatedAt = 9;
+}
+
+message FreightStatusHistory {
+  string id = 1;
+  string freightBookingId = 2;
+  string status = 3;
+  optional string note = 4;
+  optional string actorId = 5;
+  google.protobuf.Timestamp changedAt = 6;
+}
+
+message CreateFreightQuoteRequest {
+  string freightRequestId = 1;
+  optional string providerId = 2;
+  double quotedAmount = 3;
+  string currency = 4;
+  google.protobuf.Timestamp validUntil = 5;
+}
+
+message CreateFreightQuoteResponse {
+  FreightQuote quote = 1;
+}
+
+message BookFreightRequest {
+  string freightRequestId = 1;
+  string quoteId = 2;
+  string bookingReference = 3;
+  string assignedVehicleType = 4;
+  optional string driverId = 5;
+}
+
+message BookFreightResponse {
+  FreightBooking booking = 1;
+}
+
+message AssignFreightRequest {
+  string freightBookingId = 1;
+  string driverId = 2;
+  string vehicleId = 3;
+  optional string status = 4;
+}
+
+message AssignFreightResponse {
+  FreightAssignment assignment = 1;
+}
+
+message UpdateFreightStatusRequest {
+  string freightBookingId = 1;
+  string status = 2;
+  optional string note = 3;
+  optional string actorId = 4;
+}
+
+message UpdateFreightStatusResponse {
+  FreightStatusHistory statusHistory = 1;
+}

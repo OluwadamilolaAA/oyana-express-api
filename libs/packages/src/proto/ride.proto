@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package ride;
+
+import "google/protobuf/timestamp.proto";
+
+service RideService {
+  rpc GetOverview (GetRideOverviewRequest) returns (GetRideOverviewResponse);
+  rpc CreateRide (CreateRideRequest) returns (CreateRideResponse);
+  rpc GetRide (GetRideRequest) returns (GetRideResponse);
+  rpc ListRides (ListRidesRequest) returns (ListRidesResponse);
+  rpc EstimateRideFare (EstimateRideFareRequest) returns (EstimateRideFareResponse);
+  rpc AssignRide (AssignRideRequest) returns (AssignRideResponse);
+  rpc UpdateRideStatus (UpdateRideStatusRequest) returns (UpdateRideStatusResponse);
+  rpc AddRideLocation (AddRideLocationRequest) returns (AddRideLocationResponse);
+  rpc CancelRide (CancelRideRequest) returns (CancelRideResponse);
+  rpc CompleteRide (CompleteRideRequest) returns (CompleteRideResponse);
+}
+
+message GetRideOverviewRequest {}
+
+message GetRideOverviewResponse {
+  string service = 1;
+  string domain = 2;
+  repeated string collections = 3;
+  repeated string capabilities = 4;
+}
+
+message CreateRideRequest {
+  string riderId = 1;
+  string pickupAddress = 2;
+  string dropoffAddress = 3;
+  double pickupLatitude = 4;
+  double pickupLongitude = 5;
+  double dropoffLatitude = 6;
+  double dropoffLongitude = 7;
+  optional string serviceLevel = 8;
+  google.protobuf.Timestamp scheduledFor = 9;
+}
+
+message CreateRideResponse {
+  Ride ride = 1;
+}
+
+message GetRideRequest {
+  string rideId = 1;
+}
+
+message GetRideResponse {
+  Ride ride = 1;
+}
+
+message ListRidesRequest {
+  optional string riderId = 1;
+  optional string driverId = 2;
+  optional string status = 3;
+}
+
+message ListRidesResponse {
+  repeated Ride rides = 1;
+}
+
+message Ride {
+  string id = 1;
+  string riderId = 2;
+  string pickupAddress = 3;
+  string dropoffAddress = 4;
+  double pickupLatitude = 5;
+  double pickupLongitude = 6;
+  double dropoffLatitude = 7;
+  double dropoffLongitude = 8;
+  string status = 9;
+  optional string serviceLevel = 10;
+  google.protobuf.Timestamp scheduledFor = 11;
+  google.protobuf.Timestamp completedAt = 12;
+  google.protobuf.Timestamp createdAt = 13;
+  google.protobuf.Timestamp updatedAt = 14;
+}
+
+message RideLocation {
+  string id = 1;
+  string rideId = 2;
+  string type = 3;
+  string label = 4;
+  double latitude = 5;
+  double longitude = 6;
+  int32 sequence = 7;
+  google.protobuf.Timestamp createdAt = 8;
+}
+
+message RideStatusHistory {
+  string id = 1;
+  string rideId = 2;
+  string status = 3;
+  optional string note = 4;
+  optional string actorId = 5;
+  google.protobuf.Timestamp changedAt = 6;
+}
+
+message RideFare {
+  string id = 1;
+  string rideId = 2;
+  double baseFare = 3;
+  double distanceFare = 4;
+  double timeFare = 5;
+  double surgeMultiplier = 6;
+  double totalAmount = 7;
+  string currency = 8;
+  google.protobuf.Timestamp quotedAt = 9;
+}
+
+message RideAssignment {
+  string id = 1;
+  string rideId = 2;
+  string driverId = 3;
+  string status = 4;
+  google.protobuf.Timestamp assignedAt = 5;
+  google.protobuf.Timestamp acceptedAt = 6;
+  google.protobuf.Timestamp arrivedAt = 7;
+  google.protobuf.Timestamp startedAt = 8;
+  google.protobuf.Timestamp completedAt = 9;
+  google.protobuf.Timestamp updatedAt = 10;
+}
+
+message RideCancellation {
+  string id = 1;
+  string rideId = 2;
+  string cancelledBy = 3;
+  string reason = 4;
+  optional double feeAmount = 5;
+  google.protobuf.Timestamp cancelledAt = 6;
+}
+
+message EstimateRideFareRequest {
+  string rideId = 1;
+  optional double estimatedDistanceKm = 2;
+  optional double estimatedDurationMinutes = 3;
+}
+
+message EstimateRideFareResponse {
+  RideFare fare = 1;
+}
+
+message AssignRideRequest {
+  string rideId = 1;
+  string driverId = 2;
+  optional string status = 3;
+}
+
+message AssignRideResponse {
+  RideAssignment assignment = 1;
+}
+
+message UpdateRideStatusRequest {
+  string rideId = 1;
+  string status = 2;
+  optional string note = 3;
+  optional string actorId = 4;
+}
+
+message UpdateRideStatusResponse {
+  RideStatusHistory statusHistory = 1;
+}
+
+message AddRideLocationRequest {
+  RideLocation location = 1;
+}
+
+message AddRideLocationResponse {
+  RideLocation location = 1;
+}
+
+message CancelRideRequest {
+  string rideId = 1;
+  string cancelledBy = 2;
+  string reason = 3;
+  optional double feeAmount = 4;
+}
+
+message CancelRideResponse {
+  RideCancellation cancellation = 1;
+}
+
+message CompleteRideRequest {
+  string rideId = 1;
+  google.protobuf.Timestamp completedAt = 2;
+}
+
+message CompleteRideResponse {
+  Ride ride = 1;
+}

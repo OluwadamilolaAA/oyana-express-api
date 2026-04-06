@@ -1,0 +1,149 @@
+syntax = "proto3";
+
+package pricing;
+
+import "google/protobuf/timestamp.proto";
+
+service PricingService {
+  rpc QuoteRidePrice (QuoteRidePriceRequest) returns (PriceQuoteResponse);
+  rpc QuoteDeliveryPrice (QuoteDeliveryPriceRequest) returns (PriceQuoteResponse);
+  rpc QuoteFreightPrice (QuoteFreightPriceRequest) returns (PriceQuoteResponse);
+  rpc ListPricingRules (ListPricingRulesRequest) returns (ListPricingRulesResponse);
+  rpc UpsertPricingRule (UpsertPricingRuleRequest) returns (UpsertPricingRuleResponse);
+  rpc ValidateCoupon (ValidateCouponRequest) returns (ValidateCouponResponse);
+}
+
+message PricingRule {
+  string id = 1;
+  string serviceType = 2;
+  string name = 3;
+  double baseAmount = 4;
+  double perKmAmount = 5;
+  double perMinuteAmount = 6;
+  string currency = 7;
+  bool isActive = 8;
+  google.protobuf.Timestamp effectiveFrom = 9;
+  google.protobuf.Timestamp effectiveTo = 10;
+}
+
+message SurgeRule {
+  string id = 1;
+  string serviceType = 2;
+  string zoneCode = 3;
+  double multiplier = 4;
+  string startsAtIso = 5;
+  string endsAtIso = 6;
+  bool isActive = 7;
+}
+
+message VehicleRateCard {
+  string id = 1;
+  string serviceType = 2;
+  string vehicleTypeCode = 3;
+  double baseAmount = 4;
+  double perKmAmount = 5;
+  double perMinuteAmount = 6;
+  double minimumFare = 7;
+  string currency = 8;
+  bool isActive = 9;
+}
+
+message ZonePricing {
+  string id = 1;
+  string serviceType = 2;
+  string zoneCode = 3;
+  double flatAmount = 4;
+  double perKmAmount = 5;
+  string currency = 6;
+  bool isActive = 7;
+}
+
+message Coupon {
+  string id = 1;
+  string code = 2;
+  string serviceType = 3;
+  string discountType = 4;
+  double discountValue = 5;
+  optional double maximumDiscount = 6;
+  optional double minimumSpend = 7;
+  optional int32 usageLimit = 8;
+  bool isActive = 9;
+  google.protobuf.Timestamp startsAt = 10;
+  google.protobuf.Timestamp endsAt = 11;
+}
+
+message PriceQuote {
+  string id = 1;
+  string serviceType = 2;
+  optional string vehicleTypeCode = 3;
+  double baseAmount = 4;
+  double distanceAmount = 5;
+  double timeAmount = 6;
+  double surgeAmount = 7;
+  double discountAmount = 8;
+  double totalAmount = 9;
+  string currency = 10;
+  optional string couponCode = 11;
+  google.protobuf.Timestamp quotedAt = 12;
+}
+
+message QuoteRidePriceRequest {
+  double distanceKm = 1;
+  double durationMinutes = 2;
+  optional string vehicleTypeCode = 3;
+  optional string zoneCode = 4;
+  optional string couponCode = 5;
+}
+
+message QuoteDeliveryPriceRequest {
+  double distanceKm = 1;
+  optional double weightKg = 2;
+  optional string vehicleTypeCode = 3;
+  optional string zoneCode = 4;
+  optional string couponCode = 5;
+}
+
+message QuoteFreightPriceRequest {
+  double distanceKm = 1;
+  double totalWeightKg = 2;
+  optional double totalVolumeM3 = 3;
+  optional string vehicleTypeCode = 4;
+  optional string zoneCode = 5;
+  optional string couponCode = 6;
+}
+
+message PriceQuoteResponse {
+  PriceQuote quote = 1;
+}
+
+message ListPricingRulesRequest {
+  optional string serviceType = 1;
+  bool includeInactive = 2;
+}
+
+message ListPricingRulesResponse {
+  repeated PricingRule pricingRules = 1;
+  repeated SurgeRule surgeRules = 2;
+  repeated VehicleRateCard vehicleRateCards = 3;
+  repeated ZonePricing zonePricing = 4;
+}
+
+message UpsertPricingRuleRequest {
+  PricingRule pricingRule = 1;
+}
+
+message UpsertPricingRuleResponse {
+  PricingRule pricingRule = 1;
+}
+
+message ValidateCouponRequest {
+  string code = 1;
+  string serviceType = 2;
+  optional double basketAmount = 3;
+}
+
+message ValidateCouponResponse {
+  bool isValid = 1;
+  optional string reason = 2;
+  Coupon coupon = 3;
+}

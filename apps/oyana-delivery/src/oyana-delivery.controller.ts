@@ -6,7 +6,7 @@ export class OyanaDeliveryController {
   constructor(private readonly oyanaDeliveryService: OyanaDeliveryService) {}
 
   @Get()
-  getHello(): string {
-    return this.oyanaDeliveryService.getHello();
+  getOverview() {
+    return this.oyanaDeliveryService.getOverview();
   }
 }

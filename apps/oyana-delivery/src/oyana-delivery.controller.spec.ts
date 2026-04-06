@@ -4,19 +4,37 @@ import { OyanaDeliveryService } from './oyana-delivery.service';
 
 describe('OyanaDeliveryController', () => {
   let oyanaDeliveryController: OyanaDeliveryController;
+  let oyanaDeliveryService: { getOverview: jest.Mock };
 
   beforeEach(async () => {
+    oyanaDeliveryService = {
+      getOverview: jest.fn(),
+    };
+
     const app: TestingModule = await Test.createTestingModule({
       controllers: [OyanaDeliveryController],
-      providers: [OyanaDeliveryService],
+      providers: [
+        {
+          provide: OyanaDeliveryService,
+          useValue: oyanaDeliveryService,
+        },
+      ],
     }).compile();
 
-    oyanaDeliveryController = app.get<OyanaDeliveryController>(OyanaDeliveryController);
+    oyanaDeliveryController = app.get<OyanaDeliveryController>(
+      OyanaDeliveryController,
+    );
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(oyanaDeliveryController.getHello()).toBe('Hello World!');
-    });
+  it('should be defined', () => {
+    expect(oyanaDeliveryController).toBeDefined();
+  });
+
+  it('delegates overview requests to the delivery service', () => {
+    const response = { service: 'oyana-delivery', domain: 'parcel-delivery' };
+    oyanaDeliveryService.getOverview.mockReturnValue(response);
+
+    expect(oyanaDeliveryController.getOverview()).toEqual(response);
+    expect(oyanaDeliveryService.getOverview).toHaveBeenCalled();
   });
 });

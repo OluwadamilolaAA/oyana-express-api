@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import { ObjectId } from 'typeorm';
-import { User } from './user.entity';
+import { UserEntity } from './entity/user.entity';
 import * as bcrypt from 'bcrypt';
 import {
   CreateUserRequest,
@@ -22,13 +22,13 @@ import {
   ValidateUserResponse,
   User as UserDto,
 } from '@package/packages';
-import { USER_REPOSITORY } from './user.providers';
+import { USER_REPOSITORY } from './provider/user.providers';
 
 @Injectable()
 export class OyanaUserService {
   constructor(
     @Inject(USER_REPOSITORY)
-    private readonly userRepository: MongoRepository<User>,
+    private readonly userRepository: MongoRepository<UserEntity>,
   ) {}
 
   async createUser(data: CreateUserRequest): Promise<CreateUserResponse> {
@@ -106,7 +106,7 @@ export class OyanaUserService {
     };
   }
 
-  private toGrpcUser(user: User): UserDto {
+  private toGrpcUser(user: UserEntity): UserDto {
     return {
       id: user.id,
       email: user.email,

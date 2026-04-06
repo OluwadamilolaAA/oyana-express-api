@@ -4,19 +4,35 @@ import { OyanaRideService } from './oyana-ride.service';
 
 describe('OyanaRideController', () => {
   let oyanaRideController: OyanaRideController;
+  let oyanaRideService: { getOverview: jest.Mock };
 
   beforeEach(async () => {
+    oyanaRideService = {
+      getOverview: jest.fn(),
+    };
+
     const app: TestingModule = await Test.createTestingModule({
       controllers: [OyanaRideController],
-      providers: [OyanaRideService],
+      providers: [
+        {
+          provide: OyanaRideService,
+          useValue: oyanaRideService,
+        },
+      ],
     }).compile();
 
     oyanaRideController = app.get<OyanaRideController>(OyanaRideController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(oyanaRideController.getHello()).toBe('Hello World!');
-    });
+  it('should be defined', () => {
+    expect(oyanaRideController).toBeDefined();
+  });
+
+  it('delegates overview requests to the ride service', () => {
+    const response = { service: 'oyana-ride', domain: 'ride-booking' };
+    oyanaRideService.getOverview.mockReturnValue(response);
+
+    expect(oyanaRideController.getOverview()).toEqual(response);
+    expect(oyanaRideService.getOverview).toHaveBeenCalled();
   });
 });

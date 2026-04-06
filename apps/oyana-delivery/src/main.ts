@@ -1,8 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { OyanaDeliveryModule } from './oyana-delivery.module';
+import { DEFAULT_PORTS, getHttpPort } from '@package/packages';
 
 async function bootstrap() {
   const app = await NestFactory.create(OyanaDeliveryModule);
-  await app.listen(process.env.port ?? 3000);
+  app.enableShutdownHooks();
+  await app.listen(
+    getHttpPort('DELIVERY_HTTP_PORT', DEFAULT_PORTS.deliveryHttp),
+  );
 }
-bootstrap();
+void bootstrap();

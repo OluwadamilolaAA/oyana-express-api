@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+package notification;
+
+import "google/protobuf/timestamp.proto";
+
+service NotificationService {
+  rpc SendNotification (SendNotificationRequest) returns (SendNotificationResponse);
+  rpc SendEventNotification (SendEventNotificationRequest) returns (SendEventNotificationResponse);
+  rpc ListNotifications (ListNotificationsRequest) returns (ListNotificationsResponse);
+  rpc MarkNotificationRead (MarkNotificationReadRequest) returns (MarkNotificationReadResponse);
+  rpc UpsertNotificationTemplate (UpsertNotificationTemplateRequest) returns (UpsertNotificationTemplateResponse);
+  rpc ListNotificationLogs (ListNotificationLogsRequest) returns (ListNotificationLogsResponse);
+}
+
+message Notification {
+  string id = 1;
+  string recipientId = 2;
+  string channel = 3;
+  optional string templateCode = 4;
+  string title = 5;
+  string body = 6;
+  string status = 7;
+  optional string serviceType = 8;
+  optional string entityId = 9;
+  google.protobuf.Timestamp sentAt = 10;
+  google.protobuf.Timestamp readAt = 11;
+  google.protobuf.Timestamp createdAt = 12;
+}
+
+message NotificationTemplate {
+  string id = 1;
+  string code = 2;
+  string channel = 3;
+  string titleTemplate = 4;
+  string bodyTemplate = 5;
+  bool isActive = 6;
+  google.protobuf.Timestamp createdAt = 7;
+  google.protobuf.Timestamp updatedAt = 8;
+}
+
+message NotificationLog {
+  string id = 1;
+  string notificationId = 2;
+  string provider = 3;
+  string status = 4;
+  optional string errorMessage = 5;
+  optional string providerReference = 6;
+  google.protobuf.Timestamp createdAt = 7;
+}
+
+message NotificationEvent {
+  string serviceType = 1;
+  string eventType = 2;
+  string recipientId = 3;
+  optional string entityId = 4;
+  optional string payloadJson = 5;
+}
+
+message SendNotificationRequest {
+  Notification notification = 1;
+}
+
+message SendNotificationResponse {
+  Notification notification = 1;
+}
+
+message SendEventNotificationRequest {
+  NotificationEvent event = 1;
+}
+
+message SendEventNotificationResponse {
+  repeated Notification notifications = 1;
+}
+
+message ListNotificationsRequest {
+  string recipientId = 1;
+  optional string status = 2;
+}
+
+message ListNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+
+message MarkNotificationReadRequest {
+  string notificationId = 1;
+  string recipientId = 2;
+}
+
+message MarkNotificationReadResponse {
+  Notification notification = 1;
+}
+
+message UpsertNotificationTemplateRequest {
+  NotificationTemplate template = 1;
+}
+
+message UpsertNotificationTemplateResponse {
+  NotificationTemplate template = 1;
+}
+
+message ListNotificationLogsRequest {
+  string notificationId = 1;
+}
+
+message ListNotificationLogsResponse {
+  repeated NotificationLog logs = 1;
+}
