@@ -11,7 +11,9 @@ describe('OyanaDispatchController', () => {
       providers: [OyanaDispatchService],
     }).compile();
 
-    oyanaDispatchController = app.get<OyanaDispatchController>(OyanaDispatchController);
+    oyanaDispatchController = app.get<OyanaDispatchController>(
+      OyanaDispatchController,
+    );
   });
 
   describe('root', () => {

@@ -11,7 +11,9 @@ describe('OyanaPaymentController', () => {
       providers: [OyanaPaymentService],
     }).compile();
 
-    oyanaPaymentController = app.get<OyanaPaymentController>(OyanaPaymentController);
+    oyanaPaymentController = app.get<OyanaPaymentController>(
+      OyanaPaymentController,
+    );
   });
 
   describe('root', () => {

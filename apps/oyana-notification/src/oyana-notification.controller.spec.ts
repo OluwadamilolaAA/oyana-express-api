@@ -11,7 +11,9 @@ describe('OyanaNotificationController', () => {
       providers: [OyanaNotificationService],
     }).compile();
 
-    oyanaNotificationController = app.get<OyanaNotificationController>(OyanaNotificationController);
+    oyanaNotificationController = app.get<OyanaNotificationController>(
+      OyanaNotificationController,
+    );
   });
 
   describe('root', () => {

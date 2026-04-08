@@ -1,7 +1,6 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import type { ClientGrpc } from '@nestjs/microservices';
 import {
-  CreateDriverResponse,
   DEFAULT_PORTS,
   DriverServiceClient,
   GetDriverResponse,

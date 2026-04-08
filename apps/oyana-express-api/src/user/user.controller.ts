@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -22,9 +21,8 @@ import {
   type AuthenticatedUser,
   CurrentUser,
 } from '../auth/decorators/user.decorator';
-import { CreateUserResponse } from '@package/packages';
 import { AuthGuard } from '../auth/guards/auth.guard';
-import { CreateUserDto, UserResponseDto } from '../swagger/swagger.dto';
+import { UserResponseDto } from '../swagger/swagger.dto';
 import {
   UpdateUserProfileDto,
   UpsertEmergencyContactDto,
@@ -194,5 +192,4 @@ export class UserController {
   ): Promise<UpsertKycProfileResponse> {
     return this.userService.upsertKycProfile(user.userId, dto);
   }
-
 }

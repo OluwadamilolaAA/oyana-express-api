@@ -11,7 +11,9 @@ describe('OyanaPricingController', () => {
       providers: [OyanaPricingService],
     }).compile();
 
-    oyanaPricingController = app.get<OyanaPricingController>(OyanaPricingController);
+    oyanaPricingController = app.get<OyanaPricingController>(
+      OyanaPricingController,
+    );
   });
 
   describe('root', () => {

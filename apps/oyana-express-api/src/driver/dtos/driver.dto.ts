@@ -7,7 +7,6 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
-
 export class UpdateDriverDto {
   @ApiProperty()
   @IsString()

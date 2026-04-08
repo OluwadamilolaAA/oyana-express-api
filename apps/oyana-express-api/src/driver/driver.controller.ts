@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
-  ApiCreatedResponse,
   ApiOkResponse,
   ApiOperation,
   ApiParam,
@@ -25,14 +24,38 @@ import {
 } from '../auth/decorators/user.decorator';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import {
-  CreateDriverDto,
   DriverListResponseDto,
   DriverResponseDto,
   UpdateDriverDto,
 } from '../swagger/swagger.dto';
 import { UpdateDriverResponse } from '@package/packages';
-import { AssignVehicleResponse, GetDriverProfileResponse, GetDriverStatusResponse, ListDriverDocumentsResponse, ListVehiclesResponse, ListVehicleTypesResponse, ReviewDriverResponse, UnassignVehicleResponse, UpdateDriverProfileResponse, UpsertDriverDocumentResponse, UpsertDriverStatusResponse, UpsertVehicleResponse, UpsertVehicleTypeResponse } from '@package/packages/generated/driver';
-import { AssignVehicleDto, ListVehiclesQueryDto, ListVehicleTypesQueryDto, ReviewDriverDto, UnassignVehicleDto, UpdateDriverProfileDto, UpsertDriverDocumentDto, UpsertDriverStatusDto, UpsertVehicleDto, UpsertVehicleTypeDto } from './dtos/driver.dto';
+import {
+  AssignVehicleResponse,
+  GetDriverProfileResponse,
+  GetDriverStatusResponse,
+  ListDriverDocumentsResponse,
+  ListVehiclesResponse,
+  ListVehicleTypesResponse,
+  ReviewDriverResponse,
+  UnassignVehicleResponse,
+  UpdateDriverProfileResponse,
+  UpsertDriverDocumentResponse,
+  UpsertDriverStatusResponse,
+  UpsertVehicleResponse,
+  UpsertVehicleTypeResponse,
+} from '@package/packages/generated/driver';
+import {
+  AssignVehicleDto,
+  ListVehiclesQueryDto,
+  ListVehicleTypesQueryDto,
+  ReviewDriverDto,
+  UnassignVehicleDto,
+  UpdateDriverProfileDto,
+  UpsertDriverDocumentDto,
+  UpsertDriverStatusDto,
+  UpsertVehicleDto,
+  UpsertVehicleTypeDto,
+} from './dtos/driver.dto';
 
 @ApiTags('Drivers')
 @Controller('driver')

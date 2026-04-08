@@ -8,7 +8,6 @@ import {
   RefreshTokenResponse,
   RegisterResponse,
   SendOTPResponse,
-  ValidateTokenResponse,
   VerifyOTPResponse,
 } from '@package/packages';
 import { RegisterDto } from './dtos/register.dto';
@@ -20,8 +19,6 @@ import {
   RefreshTokenResponseDto,
   RegisterResponseDto,
   SendOtpDto,
-  ValidateTokenDto,
-  ValidateTokenResponseDto,
   VerifyOtpDto,
   VerifyOtpResponseDto,
 } from '../swagger/swagger.dto';
@@ -44,7 +41,6 @@ export class AuthController {
   async register(@Body() dto: RegisterDto): Promise<RegisterResponse> {
     return this.authService.register(dto);
   }
-
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh an access token' })

@@ -7,8 +7,8 @@ import type {
   RefreshTokenResponse,
   RegisterResponse,
   SendOTPResponse,
-  ValidateTokenResponse,
   VerifyOTPResponse,
+  ValidateTokenResponse,
 } from '@package/packages';
 import {
   DEFAULT_PORTS,
@@ -36,7 +36,6 @@ export class AuthService implements OnModuleInit {
   private async getRequestMetadata() {
     return getCloudRunGrpcMetadata(this.authServiceAudience);
   }
-
 
   async login(dto: LoginDto): Promise<LoginResponse> {
     return firstValueFrom(
@@ -87,6 +86,12 @@ export class AuthService implements OnModuleInit {
         { userId, code, type },
         await this.getRequestMetadata(),
       ),
+    );
+  }
+
+  async validateToken(token: string): Promise<ValidateTokenResponse> {
+    return firstValueFrom(
+      this.authClient.validateToken({ token }, await this.getRequestMetadata()),
     );
   }
 }

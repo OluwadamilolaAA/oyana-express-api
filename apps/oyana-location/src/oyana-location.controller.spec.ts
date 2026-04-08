@@ -11,7 +11,9 @@ describe('OyanaLocationController', () => {
       providers: [OyanaLocationService],
     }).compile();
 
-    oyanaLocationController = app.get<OyanaLocationController>(OyanaLocationController);
+    oyanaLocationController = app.get<OyanaLocationController>(
+      OyanaLocationController,
+    );
   });
 
   describe('root', () => {

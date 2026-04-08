@@ -3,7 +3,9 @@ import { OyanaNotificationService } from './oyana-notification.service';
 
 @Controller()
 export class OyanaNotificationController {
-  constructor(private readonly oyanaNotificationService: OyanaNotificationService) {}
+  constructor(
+    private readonly oyanaNotificationService: OyanaNotificationService,
+  ) {}
 
   @Get()
   getHello(): string {
