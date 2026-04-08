@@ -45,14 +45,6 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
-  @Post('validate-token')
-  @ApiOperation({ summary: 'Validate an access token' })
-  @ApiOkResponse({ type: ValidateTokenResponseDto })
-  async validateToken(
-    @Body() dto: ValidateTokenDto,
-  ): Promise<ValidateTokenResponse> {
-    return this.authService.validateToken(dto.token);
-  }
 
   @Post('refresh-token')
   @ApiOperation({ summary: 'Refresh an access token' })

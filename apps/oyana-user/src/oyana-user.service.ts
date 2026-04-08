@@ -110,7 +110,7 @@ export class OyanaUserService {
     };
   }
 
-  async getUserById(request: GetUserRequest): Promise<GetUserResponse> {
+  async getUser(request: GetUserRequest): Promise<GetUserResponse> {
     const { userId } = request;
 
     if (!ObjectId.isValid(userId)) {

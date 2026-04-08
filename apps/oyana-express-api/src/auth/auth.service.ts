@@ -37,11 +37,6 @@ export class AuthService implements OnModuleInit {
     return getCloudRunGrpcMetadata(this.authServiceAudience);
   }
 
-  async validateToken(token: string): Promise<ValidateTokenResponse> {
-    return firstValueFrom(
-      this.authClient.validateToken({ token }, await this.getRequestMetadata()),
-    );
-  }
 
   async login(dto: LoginDto): Promise<LoginResponse> {
     return firstValueFrom(

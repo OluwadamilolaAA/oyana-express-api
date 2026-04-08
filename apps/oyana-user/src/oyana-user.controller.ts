@@ -56,7 +56,7 @@ export class OyanaUserController implements UserServiceController {
     metadata?: Metadata,
   ): Promise<GetUserResponse> | Observable<GetUserResponse> | GetUserResponse {
     void metadata;
-    return this.oyanaUserService.getUserById(request);
+    return this.oyanaUserService.getUser(request);
   }
 
   validateUser(
