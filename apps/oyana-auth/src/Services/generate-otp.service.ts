@@ -3,7 +3,7 @@ import { randomInt } from 'crypto';
 import dayjs from 'dayjs';
 import { MongoRepository } from 'typeorm';
 import { AUTH_OTP_REPOSITORY } from '../provider/auth.providers';
-import { OTPType, OtpVerification } from '../entities/verification-otp.entity';
+import { OTPType, OtpVerification } from '../Entities/verification-otp.entity';
 
 @Injectable()
 export class OTPService {

@@ -34,8 +34,8 @@ import {
 } from '@package/packages';
 import { UserServiceClient } from '@package/packages';
 import { firstValueFrom } from 'rxjs';
-import { AuthEventType } from '../entities/audit-log.entity';
-import { OTPType } from '../entities/verification-otp.entity';
+import { AuthEventType } from '../Entities/audit-log.entity';
+import { OTPType } from '../Entities/verification-otp.entity';
 import * as bcrypt from 'bcrypt';
 import { AuditLogService } from './audit-log.service';
 import { SessionService } from './oyana-session.service';
