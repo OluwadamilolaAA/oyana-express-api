@@ -28,80 +28,65 @@ import {
 export class OyanaAuthController implements AuthController {
   constructor(private readonly oyanaAuthService: OyanaAuthService) {}
 
-  login(
+  async login(
     request: LoginRequest,
     metadata?: Metadata,
-  ): Promise<LoginResponse> | Observable<LoginResponse> | LoginResponse {
+  ): Promise<LoginResponse> {
     void metadata;
     return this.oyanaAuthService.login(request);
   }
 
-  register(
+  async register(
     request: RegisterRequest,
     metadata?: Metadata,
-  ):
-    | Promise<RegisterResponse>
-    | Observable<RegisterResponse>
-    | RegisterResponse {
+  ): Promise<RegisterResponse> {
     void metadata;
     return this.oyanaAuthService.register(request);
   }
-  validateToken(
+  async validateToken(
     request: ValidateTokenRequest,
     metadata?: Metadata,
-  ):
-    | Promise<ValidateTokenResponse>
-    | Observable<ValidateTokenResponse>
-    | ValidateTokenResponse {
+  ): Promise<ValidateTokenResponse> {
     void metadata;
     return this.oyanaAuthService.validateToken(request);
   }
 
-  refreshToken(
+  async refreshToken(
     request: RefreshTokenRequest,
     metadata?: Metadata,
-  ):
-    | Promise<RefreshTokenResponse>
-    | Observable<RefreshTokenResponse>
-    | RefreshTokenResponse {
+  ): Promise<RefreshTokenResponse> {
     void metadata;
     return this.oyanaAuthService.refreshToken(request);
   }
 
-  logout(
+  async logout(
     request: LogoutRequest,
     metadata?: Metadata,
-  ): Promise<LogoutResponse> | Observable<LogoutResponse> | LogoutResponse {
+  ): Promise<LogoutResponse> {
     void metadata;
     return this.oyanaAuthService.logout(request);
   }
 
-  sendOtp(
+  async sendOtp(
     request: SendOTPRequest,
     metadata?: Metadata,
-  ): Promise<SendOTPResponse> | Observable<SendOTPResponse> | SendOTPResponse {
+  ): Promise<SendOTPResponse> {
     void metadata;
     return this.oyanaAuthService.sendOtp(request);
   }
 
-  verifyOtp(
+  async verifyOtp(
     request: VerifyOTPRequest,
     metadata?: Metadata,
-  ):
-    | Promise<VerifyOTPResponse>
-    | Observable<VerifyOTPResponse>
-    | VerifyOTPResponse {
+  ): Promise<VerifyOTPResponse> {
     void metadata;
     return this.oyanaAuthService.verifyOtp(request);
   }
 
-  getAuthContext(
+  async getAuthContext(
     request: GetAuthContextRequest,
     metadata?: Metadata,
-  ):
-    | Promise<GetAuthContextResponse>
-    | Observable<GetAuthContextResponse>
-    | GetAuthContextResponse {
+  ): Promise<GetAuthContextResponse> {
     void metadata;
     return this.oyanaAuthService.getAuthContext(request);
   }
