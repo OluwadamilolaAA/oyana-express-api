@@ -1,5 +1,13 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
+import {
+  DriverDocumentEntity,
+  DriverProfileEntity,
+  DriverStatusEntity,
+  DriverVehicleAssignmentEntity,
+  VehicleEntity,
+  VehicleTypeEntity,
+} from '../entity/driver.entity';
 
 export const databaseProviders = [
   {
@@ -19,7 +27,14 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [
+          DriverProfileEntity,
+          DriverDocumentEntity,
+          DriverStatusEntity,
+          VehicleTypeEntity,
+          VehicleEntity,
+          DriverVehicleAssignmentEntity,
+        ],
         synchronize: mongoSettings.synchronize,
       });
 

@@ -1,5 +1,13 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
+import {
+  FreightAssignmentEntity,
+  FreightBookingEntity,
+  FreightItemEntity,
+  FreightQuoteEntity,
+  FreightRequestEntity,
+  FreightStatusHistoryEntity,
+} from '../entity/freight.entity';
 
 export const databaseProviders = [
   {
@@ -19,7 +27,14 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [
+          FreightRequestEntity,
+          FreightItemEntity,
+          FreightQuoteEntity,
+          FreightBookingEntity,
+          FreightAssignmentEntity,
+          FreightStatusHistoryEntity,
+        ],
         synchronize: mongoSettings.synchronize,
       });
 

@@ -16,7 +16,7 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [],
         synchronize: mongoSettings.synchronize,
       });
 

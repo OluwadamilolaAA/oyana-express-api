@@ -1,5 +1,10 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
+import { AuthAuditLog } from '../Entities/audit-log.entity';
+import { AuthIdentity } from '../Entities/auth.entity';
+import { Credential } from '../Entities/credentials.entity';
+import { Session } from '../Entities/session.entity';
+import { OtpVerification } from '../Entities/verification-otp.entity';
 
 export const databaseProviders = [
   {
@@ -16,7 +21,13 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [
+          AuthAuditLog,
+          AuthIdentity,
+          Credential,
+          Session,
+          OtpVerification,
+        ],
         synchronize: mongoSettings.synchronize,
       });
 

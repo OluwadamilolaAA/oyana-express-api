@@ -1,5 +1,13 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
+import {
+  DeliveryAssignmentEntity,
+  DeliveryEntity,
+  DeliveryItemEntity,
+  DeliveryStatusHistoryEntity,
+  ProofOfDeliveryEntity,
+  ReceiverEntity,
+} from '../entity/delivery.entity';
 
 export const databaseProviders = [
   {
@@ -19,7 +27,14 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [
+          DeliveryEntity,
+          DeliveryItemEntity,
+          ReceiverEntity,
+          DeliveryStatusHistoryEntity,
+          DeliveryAssignmentEntity,
+          ProofOfDeliveryEntity,
+        ],
         synchronize: mongoSettings.synchronize,
       });
 

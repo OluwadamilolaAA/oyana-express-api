@@ -1,5 +1,12 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
+import {
+  EmergencyContactEntity,
+  KycProfileEntity,
+  UserAddressEntity,
+  UserEntity,
+  UserPreferenceEntity,
+} from '../entity/user.entity';
 
 export const databaseProviders = [
   {
@@ -16,7 +23,13 @@ export const databaseProviders = [
               port: mongoSettings.port!,
             }),
         database: mongoSettings.database,
-        entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+        entities: [
+          UserEntity,
+          UserAddressEntity,
+          UserPreferenceEntity,
+          EmergencyContactEntity,
+          KycProfileEntity,
+        ],
         synchronize: mongoSettings.synchronize,
       });
 
