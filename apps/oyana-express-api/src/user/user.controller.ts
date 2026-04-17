@@ -47,6 +47,8 @@ import {
 
 @ApiTags('Users')
 @Controller('user')
+@UseGuards(AuthGuard)
+@ApiBearerAuth('bearer')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
