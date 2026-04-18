@@ -33,6 +33,10 @@ export type {
   SendOTPResponse,
   VerifyOTPRequest,
   VerifyOTPResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
 } from './generated/auth';
 
 export type {

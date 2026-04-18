@@ -11,6 +11,8 @@ import {
   VerifyOTPResponse,
 } from '@package/packages';
 import { RegisterDto } from './dtos/register.dto';
+import { ForgotPasswordDto } from './dtos/forgot_password.dto';
+import { ResetPasswordDto } from './dtos/reset_password.dto';
 import {
   LoginResponseDto,
   LogoutDto,
@@ -70,5 +72,23 @@ export class AuthController {
   @ApiOkResponse({ type: VerifyOtpResponseDto })
   async verifyOtp(@Body() dto: VerifyOtpDto): Promise<VerifyOTPResponse> {
     return this.authService.verifyOtp(dto.userId, dto.code, dto.type);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request password reset OTP' })
+  @ApiOkResponse({ type: MessageResponseDto })
+  async forgotPassword(
+    @Body() dto: ForgotPasswordDto,
+  ): Promise<import('@package/packages').ForgotPasswordResponse> {
+    return this.authService.forgotPassword(dto);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using OTP' })
+  @ApiOkResponse({ type: MessageResponseDto })
+  async resetPassword(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<import('@package/packages').ResetPasswordResponse> {
+    return this.authService.resetPassword(dto);
   }
 }

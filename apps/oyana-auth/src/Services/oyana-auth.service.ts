@@ -30,16 +30,24 @@ import {
   ValidateTokenResponse,
   VerifyOTPRequest,
   VerifyOTPResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
   User,
 } from '@package/packages';
 import { UserServiceClient } from '@package/packages';
 import { firstValueFrom } from 'rxjs';
-import { AuthEventType } from '../Entities/audit-log.entity';
-import { OTPType } from '../Entities/verification-otp.entity';
+import { AuthEventType } from '../entities/audit-log.entity';
+import type { OTPType } from '../entities/verification-otp.entity';
 import * as bcrypt from 'bcrypt';
+import { MongoRepository } from 'typeorm';
+import { AUTH_IDENTITY_REPOSITORY } from '../provider/auth.providers';
+import { AuthIdentity } from '../entities/auth.entity';
 import { AuditLogService } from './audit-log.service';
 import { SessionService } from './oyana-session.service';
 import { OTPService } from './generate-otp.service';
+import { CredentialService } from './credential.service';
 
 interface AuthTokenPayload {
   sub: string;
@@ -63,6 +71,9 @@ export class OyanaAuthService implements OnModuleInit {
     private readonly auditLogService: AuditLogService,
     private readonly sessionService: SessionService,
     private readonly otpService: OTPService,
+    private readonly credentialService: CredentialService,
+    @Inject(AUTH_IDENTITY_REPOSITORY)
+    private readonly authIdentityRepo: MongoRepository<AuthIdentity>,
   ) {}
 
   onModuleInit(): void {
@@ -74,7 +85,8 @@ export class OyanaAuthService implements OnModuleInit {
   }
 
   async login(request: LoginRequest): Promise<LoginResponse> {
-    const email = requireEmail(request.email);
+    const emailRaw = request.email ?? '';
+    const email = requireEmail(emailRaw);
     const password = requirePassword(request.password);
 
     const response = await firstValueFrom(
@@ -261,6 +273,57 @@ export class OyanaAuthService implements OnModuleInit {
     const verified = await this.otpService.verifyOTP(userId, code, otpType);
 
     return { verified };
+  }
+
+  async resetPassword(
+    request: ResetPasswordRequest,
+  ): Promise<ResetPasswordResponse> {
+    const email = requireEmail(request.email);
+    const code = requireNonEmptyString(request.code, 'OTP code');
+    const newPassword = requirePassword(request.newPassword);
+
+    const identity = await this.authIdentityRepo.findOne({ where: { email } });
+
+    if (!identity) {
+      throw new BadRequestException('User not found');
+    }
+
+    await this.otpService.verifyOTP(identity.userId, code, 'PASSWORD_RESET');
+
+    await this.credentialService.updatePasswordCredential(
+      identity.userId,
+      newPassword,
+    );
+
+    await this.auditLogService.log({
+      userId: identity.userId,
+      eventType: AuthEventType.PASSWORD_RESET_REQUESTED,
+      metadata: { method: 'reset' },
+    });
+
+    return { message: 'Password reset successfully', status: 'success' };
+  }
+
+  async forgotPassword(
+    request: ForgotPasswordRequest,
+  ): Promise<ForgotPasswordResponse> {
+    const email = requireEmail(request.email);
+
+    const identity = await this.authIdentityRepo.findOne({ where: { email } });
+
+    if (!identity) {
+      return { message: 'If the account exists, an OTP has been sent' };
+    }
+
+    await this.otpService.generateOTP(identity.userId, 'PASSWORD_RESET');
+
+    await this.auditLogService.log({
+      userId: identity.userId,
+      eventType: AuthEventType.PASSWORD_RESET_REQUESTED,
+      metadata: { email },
+    });
+
+    return { message: 'If the account exists, an OTP has been sent' };
   }
 
   async getAuthContext(

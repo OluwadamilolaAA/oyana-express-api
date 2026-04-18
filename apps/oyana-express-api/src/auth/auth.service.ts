@@ -9,6 +9,8 @@ import type {
   SendOTPResponse,
   VerifyOTPResponse,
   ValidateTokenResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
 } from '@package/packages';
 import {
   DEFAULT_PORTS,
@@ -18,6 +20,27 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { LoginDto } from './dtos/login.dto';
 import { RegisterDto } from './dtos/register.dto';
+import { ForgotPasswordDto } from './dtos/forgot_password.dto';
+import { ResetPasswordDto } from './dtos/reset_password.dto';
+
+export interface IAuthService {
+  login(dto: LoginDto): Promise<LoginResponse>;
+  register(dto: RegisterDto): Promise<RegisterResponse>;
+  refreshToken(
+    refreshToken: string,
+    sessionId: string,
+  ): Promise<RefreshTokenResponse>;
+  logout(sessionId: string): Promise<LogoutResponse>;
+  sendOtp(userId: string, type: string): Promise<SendOTPResponse>;
+  verifyOtp(
+    userId: string,
+    code: string,
+    type: string,
+  ): Promise<VerifyOTPResponse>;
+  forgotPassword(dto: ForgotPasswordDto): Promise<ForgotPasswordResponse>;
+  resetPassword(dto: ResetPasswordDto): Promise<ResetPasswordResponse>;
+  validateToken(token: string): Promise<ValidateTokenResponse>;
+}
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -73,6 +96,20 @@ export class AuthService implements OnModuleInit {
         { userId, type },
         await this.getRequestMetadata(),
       ),
+    );
+  }
+
+  async forgotPassword(
+    dto: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponse> {
+    return firstValueFrom(
+      this.authClient.forgotPassword(dto, await this.getRequestMetadata()),
+    );
+  }
+
+  async resetPassword(dto: ResetPasswordDto): Promise<ResetPasswordResponse> {
+    return firstValueFrom(
+      this.authClient.resetPassword(dto, await this.getRequestMetadata()),
     );
   }
 

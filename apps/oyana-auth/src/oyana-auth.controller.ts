@@ -1,7 +1,6 @@
 import { Controller } from '@nestjs/common';
-import { OyanaAuthService } from './Services/oyana-auth.service';
+import { OyanaAuthService } from './services/oyana-auth.service';
 import { Metadata } from '@grpc/grpc-js';
-import { Observable } from 'rxjs';
 import {
   AuthController,
   AuthControllerMethods,
@@ -21,6 +20,10 @@ import {
   ValidateTokenResponse,
   VerifyOTPRequest,
   VerifyOTPResponse,
+  ResetPasswordRequest,
+  ResetPasswordResponse,
+  ForgotPasswordRequest,
+  ForgotPasswordResponse,
 } from '@package/packages';
 
 @Controller()
@@ -81,6 +84,22 @@ export class OyanaAuthController implements AuthController {
   ): Promise<VerifyOTPResponse> {
     void metadata;
     return this.oyanaAuthService.verifyOtp(request);
+  }
+
+  async resetPassword(
+    request: ResetPasswordRequest,
+    metadata?: Metadata,
+  ): Promise<ResetPasswordResponse> {
+    void metadata;
+    return this.oyanaAuthService.resetPassword(request);
+  }
+
+  async forgotPassword(
+    request: ForgotPasswordRequest,
+    metadata?: Metadata,
+  ): Promise<ForgotPasswordResponse> {
+    void metadata;
+    return this.oyanaAuthService.forgotPassword(request);
   }
 
   async getAuthContext(

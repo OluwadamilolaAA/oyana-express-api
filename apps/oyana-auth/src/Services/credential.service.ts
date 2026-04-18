@@ -2,7 +2,7 @@ import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { MongoRepository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { AUTH_CREDENTIAL_REPOSITORY } from '../provider/auth.providers';
-import { Credential } from '../Entities/credentials.entity';
+import { Credential } from '../entities/credentials.entity';
 
 @Injectable()
 export class CredentialService {
@@ -80,5 +80,27 @@ export class CredentialService {
     return this.repo.find({
       where: { userId },
     });
+  }
+
+  async updatePasswordCredential(userId: string, newPassword: string) {
+    const credential = await this.repo.findOne({ where: { userId, type: 'PASSWORD' } });
+
+    const hash = await bcrypt.hash(newPassword, 10);
+
+    if (credential) {
+      credential.passwordHash = hash;
+      return this.repo.save(credential);
+    }
+
+    // create if missing
+    const created = this.repo.create({
+      userId,
+      authIdentityId: userId,
+      type: 'PASSWORD',
+      passwordHash: hash,
+      isPrimary: true,
+    });
+
+    return this.repo.save(created);
   }
 }

@@ -1,9 +1,9 @@
 import { DataSource } from 'typeorm';
-import { OtpVerification } from '../Entities/verification-otp.entity';
-import { Session } from '../Entities/session.entity';
-import { AuthIdentity } from '../Entities/auth.entity';
-import { AuthAuditLog } from '../Entities/audit-log.entity';
-import { Credential } from '../Entities/credentials.entity';
+import { OtpVerification } from '../entities/verification-otp.entity';
+import { Session } from '../entities/session.entity';
+import { AuthIdentity } from '../entities/auth.entity';
+import { AuthAuditLog } from '../entities/audit-log.entity';
+import { Credential } from '../entities/credentials.entity';
 
 export const AUTH_AUDIT_LOG_REPOSITORY = 'AUTH_AUDIT_LOG_REPOSITORY';
 export const AUTH_CREDENTIAL_REPOSITORY = 'AUTH_CREDENTIAL_REPOSITORY';

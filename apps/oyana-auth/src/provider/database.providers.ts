@@ -1,10 +1,10 @@
 import { DataSource } from 'typeorm';
 import { getMongoConnectionSettings } from '@package/packages';
-import { AuthAuditLog } from '../Entities/audit-log.entity';
-import { AuthIdentity } from '../Entities/auth.entity';
-import { Credential } from '../Entities/credentials.entity';
-import { Session } from '../Entities/session.entity';
-import { OtpVerification } from '../Entities/verification-otp.entity';
+import { AuthAuditLog } from '../entities/audit-log.entity';
+import { AuthIdentity } from '../entities/auth.entity';
+import { Credential } from '../entities/credentials.entity';
+import { Session } from '../entities/session.entity';
+import { OtpVerification } from '../entities/verification-otp.entity';
 
 export const databaseProviders = [
   {

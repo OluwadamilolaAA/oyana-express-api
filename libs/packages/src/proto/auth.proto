@@ -14,6 +14,8 @@ service Auth {
   rpc VerifyOTP (VerifyOTPRequest) returns (VerifyOTPResponse);
 
   rpc GetAuthContext (GetAuthContextRequest) returns (GetAuthContextResponse);
+  rpc ResetPassword (ResetPasswordRequest) returns (ResetPasswordResponse);
+  rpc ForgotPassword (ForgotPasswordRequest) returns (ForgotPasswordResponse);
 }
 
 
@@ -87,6 +89,25 @@ message VerifyOTPRequest {
 
 message VerifyOTPResponse {
   bool verified = 1;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+  string code = 2;
+  string newPassword = 3;
+}
+
+message ResetPasswordResponse {
+  string message = 1;
+  string status = 2;
+}
+
+message ForgotPasswordRequest {
+  string email = 1;
+}
+
+message ForgotPasswordResponse {
+  string message = 1;
 }
 
 message GetAuthContextRequest {
