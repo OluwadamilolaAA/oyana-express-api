@@ -9,6 +9,8 @@ import {
   RegisterResponse,
   SendOTPResponse,
   VerifyOTPResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
 } from '@package/packages';
 import { RegisterDto } from './dtos/register.dto';
 import { ForgotPasswordDto } from './dtos/forgot_password.dto';
@@ -79,7 +81,7 @@ export class AuthController {
   @ApiOkResponse({ type: MessageResponseDto })
   async forgotPassword(
     @Body() dto: ForgotPasswordDto,
-  ): Promise<import('@package/packages').ForgotPasswordResponse> {
+  ): Promise<ForgotPasswordResponse> {
     return this.authService.forgotPassword(dto);
   }
 
@@ -88,7 +90,7 @@ export class AuthController {
   @ApiOkResponse({ type: MessageResponseDto })
   async resetPassword(
     @Body() dto: ResetPasswordDto,
-  ): Promise<import('@package/packages').ResetPasswordResponse> {
+  ): Promise<ResetPasswordResponse> {
     return this.authService.resetPassword(dto);
   }
 }
